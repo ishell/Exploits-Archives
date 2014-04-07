@@ -1,0 +1,66 @@
+
+Netautor Professional 5.5.0 (goback) XSS Vulnerability
+
+
+Vendor: /digiconcept/
+Product web page: http://www.digiconcept.net
+Affected version: 5.5.0 and DW 5.3.1
+
+
+Summary: Netautor Professional is an application server and
+development environment. Netautor Professional was developed
+to serve the practical needs of users, and was continuously
+advanced.
+--
+Digital Workroom is a well proven and time-tested Content Management
+System. It`s based on also digiconcept`s developed Application Server
+"Netautor Professional" and PHP 5. The standard functional range covers
+the majoritarian needs on Internet- and Intranet environments for publication
+and communication.
+
+
+Desc: Netautor Professional v5.5.0 suffers from a XSS vulnerability because
+input passed via the "goback" parameter to login2.php script is not properly
+sanitised before being returned to the user. This can be exploited to execute
+arbitrary HTML and script code in a user's browser session in context of an
+affected site.
+
+
+----------------------------- [FILE] :: [LINE#] :: [STRING] -----------------------------
+
+\ROOT\digitalworkroom\exports\DW_5.3\mlayouts_262527331.xml :: 532 :: unset($GLOBALS['goback']);
+\ROOT\digitalworkroom\exports\DW_5.3\mlayouts_262527331.xml :: 536 :: if(!empty($GLOBALS['goback'])) $values['USER_TARGET'][0] = $GLOBALS['goback'];
+\ROOT\digitalworkroom\exports\DW_5.3\mlayouts_262527331.xml :: 575 :: /* Auf GLOBALS['goback'] von NPF_SECURE reagieren*/
+\ROOT\digitalworkroom\exports\DW_5.3\mlayouts_262527331.xml :: 661 :: &lt;?php if (empty( $GLOBALS['goback'])): ?&gt;
+\ROOT\netautor\napro4\home\login2.msk :: 49 :: <input type="hidden" name="goback" value="<?php echo($goback); ?>" >
+\ROOT\netautor\napro4\home\login2.php :: 38 :: if(empty($goback)) $goback = $USER->get_feature_value('initial_doc');
+\ROOT\netautor\napro4\include\functions\users.fnc :: 822 :: if (!strpos($url,'&goback=')) $url.='&goback='.rawurlencode($PHP_SELF);
+\ROOT\netautor\napro4\include\npf_lib\npf_special.fnc :: 155 :: $redirect.=( strpos($redirect,'?') ? '&' : '?' ).'goback='.rawurlencode( $REQUEST_URI );
+
+-----------------------------------------------------------------------------------------
+
+
+Tested on: MS WinXP Pro SP3 (EN)
+           PHP 5.3.0
+           MySQL 5.1.36
+           Apache 2.2.11 (Win32)
+
+
+Vendor status: [14.09.2010] Vulnerability discovered.
+               [15.09.2010] Contact with the vendor.
+               [17.09.2010] No reply from vendor.
+               [17.09.2010] Public advisory released.
+
+
+Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+                             liquidworm gmail com
+                             Zero Science Lab - http://www.zeroscience.mk
+
+
+Advisory ID: ZSL-2010-4964
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4964.php
+
+
+PoC:
+
+ http://10.0.0.17/netautor/napro4/home/login2.php?goback=%22%3Cscript%3Ealert%28document.location%29%3C/script%3E

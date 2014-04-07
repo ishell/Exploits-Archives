@@ -1,0 +1,47 @@
+aushack.com - Vulnerability Advisory
+-----------------------------------------------
+Release Date:
+ 08-Jun-2010
+
+Software:
+ Paessler - PRTG Traffic Grapher
+ http://www.paessler.com
+
+ "PRTG Network Monitor runs 24/7 on a Windows-based machine within your
+  network, recording network usage parameters. Recorded data is stored in
+  a database for historic reports."
+
+Versions tested:
+ Paessler PRTG Traffic Grapher v6.2.1.945
+
+Vulnerability discovered:
+
+ HTML / Javascript Injection (XSS)
+
+Vulnerability impact:
+
+	Medium - If an authenticated user was enticed to visit a malicious
+	 URL, it would be possible to steal the authentication cookie etc.
+
+Vulnerability information:
+
+ The 'url' GET parameter of 'login.htm' is vulnerable.
+
+ Example:
+
+  http://[victim]:8080/login.htm?url="><script>alert(document.cookie)</script>
+
+References:
+ aushack.com advisory
+ http://www.aushack.com/201006-prtg.txt
+
+Credit:
+ Patrick Webster ( patrick@aushack.com )
+
+Disclosure timeline:
+ 05-Jan-2009 - Discovered during audit.
+ 06-Jan-2009 - Notified vendor.
+ 08-Jan-2009 - Vendor releases update 6.2.1.963/964.
+ 08-Jun-2010 - Disclosure.
+
+EOF
