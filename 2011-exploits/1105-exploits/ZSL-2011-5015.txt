@@ -1,0 +1,49 @@
+
+Kentico CMS <=5.5R2.23 Cross-Site Scripting POST Injection Vulnerability
+
+
+Vendor: Kentico Software
+Product web page: http://www.kentico.com
+Affected version: 5.5R2.23 and bellow
+
+Summary: .NET Web Content Management System for ASP.NET
+
+Desc: Kentico CMS suffers from a XSS vulnerability when parsing
+user input to the 'userContextMenu_parameter' parameter via POST
+method in '/examples/webparts/membership/users-viewer.aspx'. 
+Attackers can exploit this weakness to execute arbitrary HTML
+and script code in a user's browser session.
+
+Tested on: Microsoft Windows XP Pro SP3 (EN)
+           Microsoft-IIS/7.5
+           ASP.NET 2.0.50727
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+
+Vendor timeline:
+
+12.03.2011 - Vulnerability discovered.
+21.05.2011 - Vendor contacted with sent PoC files.
+23.05.2011 - Vendor replies.
+23.05.2011 - Asked vendor for confirmation.
+24.05.2011 - Vendor confirms issue scheduling hotfix 5.5R2.24.
+31.05.2011 - Coordinated public security advisory released.
+
+
+Advisory ID: ZSL-2011-5015
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5015.php
+
+Vendor Advisory: http://devnet.kentico.com/Bugtracker/Hotfixes.aspx
+
+
+12.03.2011
+
+
+---
+
+
+
+POST http://localhost/examples/webparts/membership/users-viewer.aspx HTTP/1.1
+
+&userContextMenu_parameter=%22%20onmouseover%3Dalert%281%29%20zsl%3D%22

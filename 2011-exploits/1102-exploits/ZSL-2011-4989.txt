@@ -1,0 +1,70 @@
+
+
+Oracle MySQL Eventum 2.3 Remote Script Insertion Vulnerabilities
+
+
+Vendor: MySQL AB / Oracle Corporation
+Product web page: http://forge.mysql.com/wiki/Eventum
+Affected version: 2.2 and 2.3
+
+Summary: Eventum is a user-friendly and flexible issue tracking system that can
+be used by a support department to track incoming technical support requests, or
+by a software development team to quickly organize tasks and bugs.
+
+Desc: Eventum suffers from a cross-site scripting vulnerability. The persistent
+(stored) XSS issue is triggered when input passed via the 'keywords' parameter
+to the list.php script is not properly sanitized before being returned to the
+user. This can be exploited to execute arbitrary HTML and script code in a user's
+browser session in context of an affected site. Or, you can trigger the issue
+when parsing the string '<script>alert(1)</script>' into the search box and it
+will be stored every time you navigate back to the list.php page. If there's
+no activity the stored string will self execute every 5 minutes.
+'forgot_password.php' and 'select_project.php' are also vulnerable because
+they fail to perform filtering when using the REQUEST_URI variable.
+
+---------------------------------------------------
+
+Script: eventum-2.3/lib/eventum/class.auth.php:
+
+Line  90: $failed_url .= "&url=" . urlencode($_SERVER['REQUEST_URI']);
+Line 131: self::redirect("select_project.php?url=" . urlencode($_SERVER['REQUEST_URI']), $is_popup);
+
+--
+
+Script: eventum-2.3/templates/current_filters.tpl.html 
+
+Line: 11: <b>{$filter_name}</b>: {$filter_value}{if !$smarty.foreach.active_filters.last}; {/if}
+
+--
+
+Script: eventum-2.3\lib\pear\HTTP.php:
+
+Line 318: $url = isset($_SERVER['REQUEST_URI']) ?
+Line 319: $_SERVER['REQUEST_URI'] : $_
+
+---------------------------------------------------
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+                             liquidworm gmail com
+                             Zero Science Lab - http://www.zeroscience.mk
+
+Advisory ID: ZSL-2011-4989
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-4989.php
+
+19.01.2011
+
+
+=======
+
+Dork: intitle:"Login - Eventum"
+
+http://127.0.0.1/eventum-2.3/htdocs/list.php?keywords=<script>alert('ZSL')<%2Fscript>
+http://127.0.0.1/eventum-2.3/htdocs/forgot_password.php/>"><script>alert('ZSL')</script>
+
+http://127.0.0.1/eventum-2.2/forgot_password.php/>"><script>alert('ZSL')</script>
+http://127.0.0.1/eventum-2.2/select_project.php/>"><script>alert('ZSL')</script>

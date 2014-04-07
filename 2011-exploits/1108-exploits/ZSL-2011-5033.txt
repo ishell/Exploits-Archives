@@ -1,0 +1,40 @@
+
+AContent 1.1 (category_name) Remote Script Insertion Vulnerability
+
+
+Vendor: ATutor (Inclusive Design Institute)
+Product web page: http://www.atutor.ca
+Affected version: 1.1 (build r296)
+
+Summary: AContent is an open source learning content authoring system
+and respository used to create interoperable, accessible, adaptive
+Web-based learning content. It can be used along with learning management
+systems to develop, share, and archive learning materials.
+
+Desc: AContent suffers from a stored cross-site scripting vulnerability.
+Input thru the POST parameter 'category_name' in '/course_category/index.php'
+is not sanitized allowing the attacker to execute HTML code into user's
+browser session on the affected site. Auth needed for script insertion.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5033
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5033.php
+
+
+31.07.2011
+
+--
+
+
+POST http://localhost/AContent/course_category/index.php HTTP/1.0
+
+ category_name="><script>alert(1)</script>&add=Add

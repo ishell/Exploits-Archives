@@ -1,0 +1,36 @@
+
+XAMPP 1.7.7 Multiple URI Based Cross-Site Scripting Vulnerabilities
+
+
+Vendor: Apache Friends
+Product web page: http://www.apachefriends.org
+Affected version: 1.7.7 (Windows)
+
+Summary: XAMPP is an easy to install Apache distribution containing
+MySQL, PHP and Perl.
+
+Desc: XAMPP suffers from multiple XSS issues in several scripts that
+use the 'PHP_SELF' variable. The vulnerabilities can be triggered in
+the 'xamppsecurity.php', 'cds.php' and 'perlinfo.pl' because there
+isn't any filtering to the mentioned variable in the affected scripts.
+Attackers can exploit these weaknesses to execute arbitrary HTML and
+script code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+
+
+Advisory ID: ZSL-2011-5054
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5054.php
+
+
+06.11.2011
+
+--
+
+http://localhost/security/xamppsecurity.php/"><script>alert(1)</script>
+http://localhost/xampp/perlinfo.pl/"><script>alert(1)</script>
+http://localhost/xampp/cds.php/"><script>alert(1)</script>

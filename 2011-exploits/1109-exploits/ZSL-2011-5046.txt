@@ -1,0 +1,36 @@
+
+iGallery Plugin v1.0.0 (dir) Remote Cross-Site Scripting Vulnerability
+
+
+Vendor: net4visions.com
+Product web page: http://www.net4visions.com
+Affected version: 1.0.0
+
+Summary: iGallery uses MooTools - image resizing done dynamically using
+phpThumb - resized images are cached.
+
+Desc: iGallery suffers from a XSS vulnerability when parsing user input
+to the 'dir' parameter via GET method in '/scripts/pthumb/demo/phpThumb.demo.random.php'.
+Attackers can exploit this weakness to execute arbitrary HTML and script
+code in a user's browser session.
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+
+
+Advisory ID: ZSL-2011-5046
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5046.php
+
+
+15.09.2011
+
+--
+
+http://SOME_CMS/jscripts/tiny_mce/plugins/iGallery/scripts/pthumb/demo/phpThumb.demo.random.php?dir=<script>alert('zsl')</script>

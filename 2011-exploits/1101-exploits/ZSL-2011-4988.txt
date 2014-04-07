@@ -1,0 +1,39 @@
+CultBooking 2.0.4 (lang) Local File Inclusion Vulnerability
+
+Vendor: Cultuzz Digital Media GmbH
+Product web page: http://www.cultuzz.com
+Affected version: 2.0.4
+
+Summary: Open source hotel booking system (Internet Booking
+Engine (IBE)). Via a central api called CultSwitch it is
+possible to make bookings and set the actual availabilities
+in the hotels pms. This is easy to install and easy to integrate
+with full support.
+
+Desc: CultBooking suffers from a local file inlcusion/disclosure
+(LFI/FD) vulnerability when input passed thru the 'lang' parameter
+to cultbooking.php script is not properly verified before being used
+to include files. This can be exploited to include files from local
+resources with directory traversal attacks and URL encoded NULL bytes.
+
+~ Conditional on 'magic_quotes_gpc=off'.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+Vulnerability discovered by: Gjoko 'LiquidWorm' Krstic
+                             liquidworm gmail com
+                             Zero Science Lab - http://www.zeroscience.mk
+
+Advisory ID: ZSL-2011-4988
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-4988.php
+
+16.01.2011
+
+
+Dork: "inurl:cultbooking.php"
+
+http://1.1.1.2/cultbooking.php?lang=c%3A%5C%5Cboot.ini%00
+http://1.1.1.2/cultbooking.php?lang=../../../boot.ini%00

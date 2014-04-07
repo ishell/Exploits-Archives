@@ -1,0 +1,159 @@
+Multiple vulnerabilities in several IP camera products
+======================================================
+
+[ADVISORY INFORMATION]
+Title:		Multiple vulnerabilities in several IP camera products
+Release date: 	08/06/2011
+Last update: 	08/06/2011
+Credits: 	Roberto Paleari, Emaze Networks S.p.A (roberto.paleari@emaze.net)
+
+[VULNERABILITY INFORMATION]
+Class: 	       Hidden functionalities, command-injection, weak encryption
+
+[AFFECTED PRODUCTS]
+The vulnerabilities described in this advisory are related to a firmware shared
+among several devices of different vendors. Unfortunately, we have not been
+able to identify the actual firmware manufacturer: we asked the name of the
+firmware manufacturer to the vendors, without any success (see section
+"DISCLOSURE TIME-LINE" for details).
+
+We confirm the products of the following vendors are affected:
+   * TRENDnet
+   * Digicom
+   * iPUX
+
+We speculate some IP camera products of the following vendors are also
+affected:
+   * ZoneNet
+   * AirLink101
+
+Other products we are not aware of could also be vulnerable to these issues.
+
+[VULNERABILITY DETAILS]
+The firmware running on the affected IP cameras is subject to multiple security
+issues that allow an attacker to gain administrative access to the device and
+to execute arbitrary commands. In the following paragraphs we describe the
+details of the vulnerabilities we identified.
+
+a) Undocumented user
+   A user can authenticate to the web server running on the device using the
+   credentials "productmaker:ftvsbannedcode". The "productmaker" user can
+   access to a restricted number of web pages (basically, all the pages under
+   the "/cgi/maker/" directory).
+
+b) Command-injection vulnerabilities
+   Some of the web pages the "productmaker" can access to are subject to a
+   command-injection vulnerability, as the server-side script does not properly
+   validate user-supplied input.
+
+   The following URL exploits a command-injection vulnerability inside
+   "unittest.cgi" page. The payload executes the "ls" command and displays
+   its output inside the generated web page:
+
+   http://<device IP address>/cgi/maker/unittest.cgi?action=asd;ls;date>/dev/null 
+
+   A similar issue also affects the "sn.asp" page.
+
+c) Hidden Telnet service
+   The "productmaker" user can enable a Telnet server by accessing the
+   following web page:
+
+   http://<device IP address>/cgi/maker/tools.cgi?telnet=1
+
+   The page spawns a Telnet daemon listening on TCP port 23. The Telnet daemon
+   does not require any authentication.
+
+d) Weak password encryption
+   User passwords are stored in "/server/usr.ini", and are simply encoded in
+   base64 form.
+
+e) Configuration encoding
+   Users can backup the configuration of the device through the web
+   interface. The configuration is saved in a tgz file ("config.cfg") that is
+   "encrypted" in a easy-to-reverse form. The following Python procedure
+   decodes the "encrypted" version of the configuration file:
+
+   # 'data' is the content of the encrypted configuration file, as downloaded
+   # from the web interface
+   def conf_decode(data):
+       r = ""
+       for c in data:
+       	   x = ord(c) ^ ord('j')
+	   x = (~x) & 0xff
+	   r += chr(x)
+       return r
+
+    To encode a plain tgz file into a valid configuration archive, just apply
+    the inverse of the "conf_decode" procedure.
+
+[UNAUTHORIZED ACCESS TO THE DEVICE]
+By leveraging the aforementioned vulnerabilities, an attacker can easily obtain
+the authentication credentials for the "admin" user as follows:
+
+1. Authenticate as the hidden "productmaker" user.
+2. Exploit the command-injection vulnerability to obtain the content of the
+   /server/usr.ini file.
+3. The web server replies with the password for the "admin" user, encoded in
+   base64.
+
+[REMEDIATION] 
+We are not aware of an updated firmware that corrects the issues described in
+this advisory.  In the meanwhile, users can modify the default credentials for
+the user "productmaker", in order to inhibit unauthorized accesses to the
+device. 
+
+At this aim, users should perform the following actions: 
+
+1. Perform a backup of the configuration of the device.
+2. Decode the configuration file (see point 'e' in the previous section).
+3. Modify the config/server/usr.ini file inside the tgz archive, and replace
+   the password for the "maker" user with a new one.
+4. Rebuild the tgz archive and encode it.
+5. Upload the new configuration file to the device.
+
+A Python script that automates these steps can be provided upon request.
+
+[DISCLOSURE TIME-LINE]
+We tried to contact two different vendors. Below we report the time-lines:
+
+= VENDOR A =
+    * 07/03/2011 - The author contacts vendor A, asking for details about the
+      		   firmware manufacturer.
+    * 07/03/2011 - First reply from vendor A, asking for vulnerability
+      		   details.
+    * 08/03/2011 - The author informed vendor A about his intention to
+      		   publicly disclose the details of the security issues after
+      		   the release of proper countermeasures.
+    * 16/03/2011 - No response from the vendor. The author re-sent the previous
+      		   e-mail.
+    * 29/03/2011 - Still no reply from the vendor. The author re-sent the
+                   e-mail again.
+    * 21/04/2011 - Again, no reply from the vendor. The author re-sent the
+      		   e-mail.
+    * 08/06/2011 - Disclosure.
+
+= VENDOR B =
+    * 06/06/2011 - The author contacts vendor B, asking for details about the
+      		   firmware manufacturer.
+    * 06/06/2011 - Vendor B replies he is not interested into fixing these
+      		   security issues.
+    * 07/06/2011 - The author informs vendor B about his intention to disclose
+      		   the details of the issues.
+    * 08/06/2011 - Disclosure.
+
+[COPYRIGHT]
+Copyright(c) Emaze Networks S.p.A 2011, All rights reserved worldwide.
+Permission is hereby granted to redistribute this advisory, providing that no
+changes are made and that the copyright notices and disclaimers remain intact.
+
+Emaze Networks has updated ipLegion, its vulnerability assessment platform, to
+check for this vulnerability. Contact info@emaze.net to have more information
+about ipLegion.
+
+[DISCLAIMER]
+Emaze Networks S.p.A is not responsible for the misuse of the information
+provided in our security advisories. These advisories are a service to the
+professional security community. There are NO WARRANTIES with regard to this
+information. Any application or distribution of this information constitutes
+acceptance AS IS, at the user's own risk. This information is subject to change
+without notice.

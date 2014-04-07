@@ -1,0 +1,47 @@
+
+Hero Framework 3.69 Remote Reflected Cross-Site Scripting Vulnerability
+
+
+Vendor: Electric Function, Inc.
+Product web page: http://www.heroframework.com
+Affected version: 3.69
+
+Summary: Hero (formerly Caribou CMS) is a white label,
+open source PHP website content management system (CMS)
+and development platform.
+
+Desc: Hero suffers from a XSS vulnerability when parsing user
+input to the 'month' parameter via GET method. Attackers can
+exploit this weakness to execute arbitrary HTML and script
+code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           MySQL 5.5.16
+           PHP 5.3.8
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+
+
+Vendor status:
+
+[29.11.2011] Vulnerability discovered.
+[29.11.2011] Initial contact with the vendor, PoC sent.
+[29.11.2011] Vendor releases a fix.
+[01.12.2011] Public security advisory released.
+
+
+Advisory ID: ZSL-2011-5061
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5061.php
+
+Vendor: http://www.heroframework.com/changelog
+
+
+29.11.2011
+
+---
+
+http://localhost/hero_os/events?month=January.htaccess.aspx%22%3E%3Cscript%3Ealert%281%29%3C/script%3E
+http://localhost/hero_os/events?month=%22%3E%3Cscript%3Ealert%281%29%3C/script%3E

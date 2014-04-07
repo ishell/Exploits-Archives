@@ -1,0 +1,43 @@
+
+phpBugTracker 1.0.5 Multiple Reflected XSS Vulnerabilities
+
+
+Vendor: Benjamin Curtis
+Product web page: http://phpbt.sourceforge.net/
+Affected version: 1.0.5
+
+Summary: phpBugTracker is a web-based bug tracker with functionality
+similar to other issue tracking systems, such as Bugzilla. Design
+focuses on separating the presentation, application, and database
+layers. phpBugTracker is lightweight and easy to install, operate
+and administer. Most text can be customized for your application.
+
+Desc: phpBugTracker suffers from multiple cross-site scripting vulns.
+The issue is triggered when input passed via the 'form' parameter to
+the 'query.php' script is not properly sanitized before being returned
+to the user. This can be exploited to execute arbitrary HTML and script
+code in a user's browser session in context of an affected site.
+'query.php' and 'newaccount.php' are also vulnerable because they fail
+to perform filtering when using the REQUEST_URI variable.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+
+
+Advisory ID: ZSL-2011-4996
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-4996.php
+
+
+07.02.2011
+
+
+-----
+
+http://127.0.0.1/query.php?op=doquery&form=1>'><script>alert(1)</script>
+http://127.0.0.1/query.php/>'><script>alert(1)</script>
+http://127.0.0.1/newaccount.php/>"><script>alert(1)</script>

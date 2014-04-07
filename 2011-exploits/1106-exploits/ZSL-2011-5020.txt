@@ -1,0 +1,37 @@
+
+Sitemagic CMS 2010.04.17 (SMExt) Remote Cross-Site Scripting Vulnerability
+
+
+Vendor: Sitemagic CMS
+Product web page: http://www.sitemagic.org
+Affected version: 2010.04.17
+
+Summary: Sitemagic CMS is a fantastic new platform for building and
+maintaining great looking websites. It is very easy to set up and use,
+and is fully extendable and customizable.
+
+Desc: Sitemagic CMS suffers from a XSS vulnerability when parsing user
+input to the 'SMExt' parameter via GET method in 'index.php'. Attackers
+can exploit this weakness to execute arbitrary HTML and script code in a
+user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+                            Zero Science Lab
+
+
+Advisory ID: ZSL-2011-5020
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5020.php
+
+
+10.06.2011
+
+
+PoC:
+
+http://localhost/index.php?SMExt="><script>alert('zsl')</script>

