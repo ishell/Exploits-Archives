@@ -1,0 +1,184 @@
+------------------------------------------------
+Explanation of the 'spank' attack
+-- a new breed stream/raped
+------------------------------------------------
+
+By: lst (yardley@uiuc.edu)
+
+This is a tad different than the previous release.  Stream/Raped mearly 
+flooded the host with ack's (or no flags) and came from random ips with 
+random sequence numbers and/or ack numbers.  The difference now is that 
+this not only does the previous stuff, but also directly attacks from and 
+to multicast addresses as well.  Just as before, rate limiting should be 
+done to counteract its effect (the same idea as ICMP_BANDLIM).  The 
+multicast handling should also be checked to verify that it is behaving 
+properly.
+
+The attacker specifies the port[s] that they want to send the attack to, 
+depending on what ports are selected, you will have different net 
+results.  If the port is an open port, then you will possibly have a longer 
+kernel path to follow before the drop.  Therefore, a smart attacker will 
+hit open ports, but havoc can also come about from random ports due to 
+states and processing.
+
+In the best case scenario, you will experience only the lag of the flood 
+and the lag of the processing (currently) and then be fine when the 
+attacker stops,  In the worst case, you lockup, kill the network, and 
+possibly have to reboot.  Once you patch it, you deal with a lot less 
+processing time (the drops are handled without the RST flag when 
+appropriate--bandlim type idea).  In other words, you go to the drop 
+routine instead of dropwithrst silencing your response, which decreases 
+your processing time, the hit on your network, and the effect of the flood 
+(once a threshold is reached, all those bad packets are silently dropped 
+and the attack has less of a net effect).
+
+The filters that were presented at the beginning of this email will block 
+all multicast packets that come out (and in) the tcp stack I have been
+getting mailed a lot about this.  Here is why I said the previous 
+statement.  Receiving a packet with no flags is considered an illegal
+packet (obviously) and is often dumped, however, as we have seen in 
+the past, illegal packets often wreak havoc and often go untested.
+
+There is very little that "raped.c" or "stream.c" actually showed as 
+problems in the TCP/IP stacks.  The true problem lies more in the effects 
+of the response (caused by the attack).  This is the same concept as the 
+SYN floods of yesteryear, and the same type of thing will be done to handle 
+it.  The main difference is that it will be on a simpler note because there 
+isn't much need for a "cookie" based system.  One should just throttle the 
+response of the reset packets which in turn will help stop the storm that 
+you generate and in general, harden the tcp/ip stack to behave the way it 
+is supposed to.
+
+The main effect of this attack is that you are shooting back RST+ACK's at 
+all the spoofed hosts.  Obviously, a lot of these hosts will not exist and 
+you will get ICMP unreaches (as an example) bounced back at you.  There are 
+other possibilities as well, but unreach would be the most common 
+(redirects might be common as well although i did not spend the time to 
+analyze that).  The ones that don't respond back may send you some packets 
+back as well (depending on if the port was valid or not and what their 
+firewall rules are).  This type of attack is complicated by the multicasts, 
+and the effect is amplified as well.  All in all, it becomes very nasty 
+very quick.  Basically, this causes a nice little storm of packets, in the 
+ideal case.
+
+Note that I said ideal case in the previous paragraph.  This is not always 
+the observed behavior.  It all depends on what is on the subnet, what type 
+of packets are recieved, what rules and filters you have setup, and even 
+the duration of the flood.  It has been pointed out several times that the 
+machine will go back to normal once the attack is stopped, which is exactly 
+why something like ICMP_BANDLIM will work.
+
+I have also been asked a lot about what this "bug" affects.  I have seen it 
+have effects on *BSD, Linux, Solaris, and Win* as far as OS's go.  It has 
+also seemed to affect some hubs, switches, routers, or gateways since 
+entire subnets have "disappeared" briefly after the attack.  The multicast 
+attack seems to be more deadly to teh network than the previous attack and 
+its affects get amplified and even carried over to the rest of the network 
+(bypassing secluded network bounds).  I don't have more specifics on the 
+systems affected because of the difficulty in testing it (and keeping the 
+network up) since I do not have local access to the networks that I tested 
+on, and remote access gets real ugly real fast.
+
+Another possibility that has been suggested as to why some machines die is 
+that the machine's route table is being blown up by the spoofed 
+packets.  Each spoofed packet has a different source address which means 
+that a temporary route table entry is being created for each one.  These 
+entries take time to timeout.  Use 'vmstat -m' and check the 'routetbl' 
+field while the attack is going on.
+
+Route table entries can be controlled somewhat under freebsd with:
+
+[root@solid]::[~] sysctl -a | fgrep .rt
+net.inet.ip.rtexpire: 3600
+net.inet.ip.rtminexpire: 10
+net.inet.ip.rtmaxcache: 128
+
+You can do the following, to help if the route table is at least part of 
+the problem:
+
+sysctl -w net.inet.ip.rtexpire=2
+sysctl -w net.inet.ip.rtminexpire=2
+
+Things that will help:
+
+1. Drop all multicast packets (ingress and egress) that are addressed to 
+   the tcp stack because multicasts are not valid for tcp.
+2. Extend bandwidth limiting to include RST's, ACK's and anything else 
+   that you feel could affect the stability of the machine.
+3. Don't look for listening sockets if the packet is not a syn
+
+I hope that this helps, or explains a little more at least.
+
+---------------------------------------------------
+Temporary remedy
+---------------------------------------------------
+
+If you use ipfilter, this MAY help you, but the issue is quite a bit 
+different than the previous issue.
+
+-- start rule set --
+block in quick proto tcp from any to any head 100
+block in quick proto tcp from 224.0.0.0/28 to any group 100
+pass in quick proto tcp from any to any flags S keep state group 100
+pass out proto tcp from any to any flags S keep state
+pass in all
+-- end rule set --
+
+optionally, a rule like the following could be inserted to handle outgoing 
+packets (if they send from the firewall somehow) but you have bigger 
+problems than the attack if that is the case.
+
+-- start additional rule --
+block out proto tcp from any to 224.0.0.0/28
+-- end additional rule --
+
+That will help you "stop" the attack (actually it will just help minimize 
+the affects), although it will still use some CPU though
+
+Note: If you use IPFW, there is no immediate way to solve this problem due 
+to the fact that it is a stateless firewall.  If you are getting attacked, 
+then temporarily use ipfilter (or any other state based firewall) to stop 
+it.  Otherwise, wait for vendor patches or read more about the explanation 
+for other possible workarounds.
+
+FreeBSD "unofficial patch" by Don Lewis: 
+http://solid.ncsa.uiuc.edu/~liquid/patch/don_lewis_tcp.diff
+
+-----------------------
+Conclusion
+-----------------------
+
+This bug was found in testing.  It seems a bit more lethal than the 
+previous and should be addressed as such.  Patches should be available now, 
+but I do not follow all the platforms.
+
+--------------------
+References
+--------------------
+
+This was done independantly, although some of the analysis and reverse 
+engineering of concept was done by other people.  As a result, I would like 
+to give credit where credit is due.  The following people contributed in 
+some way or another:
+
+Brett Glass <brett@lariat.org>
+Alfred Perlstein <bright@wintelcom.net>
+Warner Losh <imp@village.org>
+Darren Reed <avalon@coombs.anu.edu.au>
+Don Lewis <Don.Lewis@tsc.tdk.com>
+
+Also, I would like to send shouts out to w00w00 (http://www.w00w00.org)
+
+-------------------
+Attached
+-------------------
+These programs are for the sake of full disclosure, don't abuse 
+them.  Spank was written with libnet, so you will need to obtain that as
+well.  You can find that at http://www.packetfactory.net/libnet
+
+For an "unofficial" patch:
+http://www.w00w00.org/files/spank/don_lewis_tcp.diff
+
+For spank.c:
+http://www.w00w00.org/files/spank/spank.c
+

