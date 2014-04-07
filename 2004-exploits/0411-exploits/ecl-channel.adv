@@ -1,0 +1,71 @@
+                [       ECL Security R&D       ]
+ Privilege escalation vulnerabilities in W-Channel embedded linux
++----------------------------------------------------------------+
+
+Type: Local
+Impact: Critical
+Affected versions: all versions below v1.54
+
+
+Product description:
+-------------------+
+
+Read http://www.tc-ide.com/eng/tcs-index.htm
+
+
+Summary:
+-------+
+
+Local user input handling vulnerabilities exist in WCI's 
+TC-IDE Embedded Linux that allow local users with access to the 
+tools provided with the system to spawn a root console,
+gaining full control over the running Linux operating system.
+In corporate environments where this product is being used,
+such vulnerabilities could cause disastrous effects, all users
+are encouraged to update to the latest firmware ASAP.
+
+
+Details:
+-------+
+
+We've found three methods of exploitation, explained below:
+
+1) In the Net Tools dialog, type ";crxvt&" (without the quotes),
+and click on Discover. A root shell within a virtual terminal 
+should appear.
+	
+2) In the PPPoE dailer GUI, type the same as above in the
+username field, and click connect.
+
+3) In Opera, click on Menu, then Preferences. In E-mail, 
+mark the "Use specific e-mail client" radio button, 
+and type "/bin/dillo" (without the quotes) in the textbox below. 
+Apply the settings, and close this menu. In the main window, 
+click on Mail, then Compose. The dillo browser window should 
+now be launched. Point it to the following address: 
+"http://localhost/cgi-bin/mycomputer.cgi". Go to the Control Panel, 
+then User Desktop. Enable "My Computer", then restart your desktop. 
+You should now have Adminitrator access to most of the settings.
+
+
+Vendor correspondence:
+---------------------+
+
+        Vendor informed: 15/10/04
+        Vendor reply: 17/10/04
+        Vendor fix release: 8/11/04
+
+
+Fix:
+---+
+
+The security problems have been fixed and marked as v1.54 build,
+Users should contact W-Channel for information on how to obtain the latest firmware.
+
+
+Contact:
+-------+
+
+Yuri Gushin             Alex Behar              Valentin Slalov
+yuri@eclipse.org.il     alex@eclipse.org.il     vns@eclipse.org.il
+PGP: 0xFCE10121	        PGP: 0x6896DEAD         PGP: 0xA552D63B

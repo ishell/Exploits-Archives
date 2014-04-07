@@ -1,0 +1,25 @@
+Hi ppl,
+
+_Manpage Lookup_ is a PHP class that helps you to build a "manpage"
+frontend in php. It is powered by Andy (http://php.amnuts.com).
+
+The script _class.manpagelookup.php_ was vulnerable to a directory
+transversal bug (because of leaks is input validation) that could lead
+to disclose any readable (by the httpd process id) files on the remote
+server.
+
+The problem was located in the function buildManPage(), the $cmd
+variable was not filtered enough and the path of any file to open could
+be given across the user input.
+
+Exploiting this issue was easy: 
+http://www.foo.com/manpage/index.php?command=/etc/resolv.conf
+
+The vulnerability has now been fixed by Andy. All people who are running
+this script should upgrade asap (http://php.amnuts.com).
+
+Best regards,
+
+--
+Cabezon Aurélien <aurelien.cabezon@isecurelabs.com>
+iSECURELABS.COM - http://www.isecurelabs.com
