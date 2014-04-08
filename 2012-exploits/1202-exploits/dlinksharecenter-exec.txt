@@ -1,0 +1,92 @@
+Unauthenticated remote code execution on D-Link ShareCenter products
+====================================================================
+
+[ADVISORY INFORMATION]
+Title:		Unauthenticated remote code execution on D-Link ShareCenter products
+Release date: 	08/02/2012
+Last update: 	08/02/2012
+Credits: 	Roberto Paleari, Emaze Networks S.p.A (roberto.paleari@emaze.net)
+
+[VULNERABILITY INFORMATION]
+Class: 	        Authentication bypass, remote code execution
+
+[AFFECTED PRODUCTS]
+We confirm the presence of the security vulnerabilities on the following
+products/firmware versions:
+
+   * DNS-320, firmware version 2.00.1217.2010
+   * DNS-320, firmware version 2.01.0512.2011
+   * DNS-320, firmware version 2.02.0901.2011
+   * DNS-320, firmware version 2.02.0923.2011
+   * DNS-325, firmware version 1.01.1217.2010
+
+Other models and firmware versions are probably also vulnerable, but they were
+not checked.
+
+[VULNERABILITY DETAILS]
+D-Link ShareCenter devices suffer from a publicly-known authentication bypass
+issue that, according to an existing advisory[1], can be exploited to cause a
+Denial-of-Service.
+
+In this advisory we shed some light over the impact of this issue. In
+particular, the device implements almost no authentication checks on HTTP
+requests for any existing CGI script (i.e., all the CGIs under the /cgi
+directory). As an example, an attacker may retrieve the device model & firmware
+version by accessing the following resources:
+
+  http://<device IP address>/cgi-bin/discovery.cgi
+  http://<device IP address>/cgi-bin/system_mgr.cgi?cmd=get_firm_v_xml
+
+Besides information gathering, this vulnerability can be exploited to gain full
+control of the device. In particular, an undocumented functionality permits to
+execute arbitrary commands, displaying their output in the generated HTML
+page. As an example, to execute the "ls" command, an attacker can access the
+following URL:
+
+  http://<device IP address>/cgi-bin/system_mgr.cgi?cmd=cgi_sms_test&command1=ls
+
+Even in this case, no authentication checks are performed.
+
+References:
+[1] http://www.securityfocus.com/bid/50902/info
+
+[REMEDIATION] 
+We are not aware of an updated firmware that corrects the issue described in
+this advisory.
+
+[DISCLOSURE TIME-LINE]
+    * 22/12/2011 - Initial vendor contact.
+
+    * 27/12/2011 - Vendor replied.
+
+    * 28/12/2011 - Emaze asks for a technical contact to discuss the details of
+      		   the vulnerability. Publication date set to January 18th,
+      		   2012.
+
+    * 02/01/2012 - No response from the vendor. The author re-sent the last
+      		   e-mail.
+
+    * 17/01/2012 - Still no reply from the vendor. The author re-sent the
+                   e-mail, again.
+
+    * 31/01/2012 - Sent another e-mail to vendor, to inform about the intention
+      		   to publicly disclose the vulnerability within February, 3rd.
+
+    * 08/02/2012 - Still no reply. Disclosure.
+
+[COPYRIGHT]
+Copyright(c) Emaze Networks S.p.A 2012, All rights reserved worldwide.
+Permission is hereby granted to redistribute this advisory, providing that no
+changes are made and that the copyright notices and disclaimers remain intact.
+
+Emaze Networks has updated ipLegion, its vulnerability assessment platform, to
+check for this vulnerability. Contact info@emaze.net to have more information
+about ipLegion.
+
+[DISCLAIMER]
+Emaze Networks S.p.A is not responsible for the misuse of the information
+provided in our security advisories. These advisories are a service to the
+professional security community. There are NO WARRANTIES with regard to this
+information. Any application or distribution of this information constitutes
+acceptance AS IS, at the user's own risk. This information is subject to change
+without notice.

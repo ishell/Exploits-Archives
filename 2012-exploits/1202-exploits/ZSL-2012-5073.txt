@@ -1,0 +1,52 @@
+
+webgrind 1.0 (dataFile) Remote Reflected XSS Vulnerability
+
+
+Vendor: Joakim Nygard and Jacob Oettinger
+Product web page: http://code.google.com/p/webgrind
+Affected version: 1.0
+
+Summary: Webgrind is an Xdebug profiling web frontend in PHP5.
+
+Desc: webgrind suffers from a XSS vulnerability when parsing
+user input to the 'dataFile' parameter via GET method in the
+index.php script. Attackers can exploit this weakness to execute
+arbitrary HTML and script code in a user's browser session.
+
+----------------------------------------
+/index.php:
+-----------
+
+24:    case 'function_list':
+25:        $dataFile = get('dataFile');
+
+----------------------------------------
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           PHP 5.3.9
+           MySQL 5.5.20
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Vendor status:
+
+[13.02.2012] Vulnerability discovered.
+[16.02.2012] Vendor notified.
+[17.02.2012] Public security advisory released.
+
+
+Advisory ID: ZSL-2012-5073
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5073.php
+
+Vendor: http://code.google.com/p/webgrind/issues/detail?id=65
+
+
+13.02.2012
+
+---
+
+ http://localhost/webgrind/index.php?dataFile=<script>alert("ZSL");</script>&costFormat=msec&showFraction=1&hideInternals=0&op=function_list

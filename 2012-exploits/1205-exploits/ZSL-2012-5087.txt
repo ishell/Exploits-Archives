@@ -1,0 +1,39 @@
+
+Andromeda Streaming MP3 Server v1.9.3.6 (s param) Remote XSS Vulnerability
+
+
+Vendor: Turnstyle
+Product web page: http://www.turnstyle.com
+Affected version: 1.9.3.6 PHP (2012)
+
+Summary: Turn your MP3 collection into an MP3 server. Simply add a
+single PHP or ASP script to any folder within your site. Now you
+can browse and play the contents of that folder - over the Web, or
+over your local network.
+
+Desc: Andromeda is prone to a cross-site scripting vulnerability.
+This issue is due to a failure in the application to properly
+sanitize user-supplied input to the 's' parameter of the 'andromeda.php'
+script.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           PHP 5.3.9
+           MySQL 5.5.20
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2012-5087
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5087.php
+
+
+08.05.2012
+
+--
+
+ Dork: "powered by andromeda version"
+
+ PoC: http://localhost/AndromedaPHP/andromeda.php?q=s&s="><script>alert(1);</script>

@@ -1,0 +1,48 @@
+
+KindEditor 4.1.2 (name parameter) Reflected XSS Vulnerability
+
+
+Vendor: Shanghai Hao Yue Software Co., Ltd.
+Product web page: http://www.kindeditor.net
+Affected version: 4.1.2 and 4.0.6
+
+Summary: KindEditor online HTML editor is a set of open source, mainly for
+users on the site to get WYSIWYG editing effects, developers can replace the
+traditional multi-line text input box (textarea) KindEditor rich visualization
+text input box.
+
+Desc: KindEditor is prone to a reflected cross-site scripting vulnerability.
+This issue is due to a failure in the application to properly sanitize user-supplied
+input to the 'name' parameter thru the 'index.php' script. Attackers can exploit this
+weakness to execute arbitrary HTML and script code in a user's browser session.
+
+
+--------------------------------- snip ---------------------------------
+/index.php:
+----------
+
+Line 14: editor = K.create('textarea[name="<?php echo $name; ?>"]', {
+
+--------------------------------- snip ---------------------------------
+
+
+Tested on: Microsoft Windows 7 Ultimate SP1 (EN)
+           Apache 2.4.2 (Win32)
+           PHP 5.4.4
+           MySQL 5.5.25a
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2012-5100
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5100.php
+
+
+21.08.2012
+
+---
+
+
+http://localhost/kindeditor/index.php?name=<pre><script>alert('XSS');</script>by ZSL!</pre>

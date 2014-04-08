@@ -1,0 +1,73 @@
+
+
+WampServer <= 2.2c (lang) Remote Cross-Site Scripting Vulnerability
+
+
+Vendor: Alter Way
+Product web page: http://www.wampserver.com
+Affected version: <= 2.2c (32/64bit)
+
+Summary: WampServer is a Windows web development environment.
+It allows you to create web applications with Apache2, PHP and
+a MySQL database.
+
+Desc: WampServer is vulnerable to cross-site scripting vulnerability.
+This issue is due to the application's failure to properly sanitize
+user-supplied input thru the 'lang' parameter (GET) in index.php script.
+An attacker may leverage any of the cross-site scripting issues to have
+arbitrary script code executed in the browser of an unsuspecting user in
+the context of the affected site. This may facilitate the theft of cookie-based
+authentication credentials, phishing as well as other attacks.
+
+
+=================================================================
+/index.php:
+-----------
+265: if (isset ($_GET['lang']))
+266: {
+267:     $langue = $_GET['lang'];
+268: }
+
+=================================================================
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN) 32bit
+           Microsoft Windows 7 Ultimate SP1 (EN) 64bit
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Vendor status:
+
+[13.02.2012] Vulnerability discovered.
+[16.02.2012] Vendor notified of the vulnerability.
+[17.02.2012] Public security advisory released.
+
+
+Advisory ID: ZSL-2012-5072
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5072.php
+
+Related Advisory ID: ZSL-2010-4926
+Related Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2010-4926.php
+
+CVE-2010-0700: http://cve.mitre.org/cgi-bin/cvename.cgi?name=CVE-2010-0700
+CWE-79: http://cwe.mitre.org/data/definitions/79.html
+
+
+
+13.02.2012
+
+---
+
+Dork:
+
+	"intext:WampServer - Donate - Alter Way"
+	"intitle:WAMPSERVER Homepage"
+
+
+PoC:
+
+        http://localhost/?lang="><script>alert('zsl')</script>
+        http://localhost/index.php?lang="><script>alert('zsl')</script>

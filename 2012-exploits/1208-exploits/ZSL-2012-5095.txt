@@ -1,0 +1,40 @@
+
+PolarisCMS (blog.aspx) Remote URI Based Cross-Site Scripting Vulnerability
+
+
+Vendor: PolarisCMS
+Product web page: http://www.polariscms.com
+Affected version: 2012
+
+Summary: PolarisCMS is a White Label CMS (content management System) providing
+more features, functions and flexibility to global web professionals, than ever
+before. The breakthrough technology used for this web platform has been built
+over a 6 year period and includes a highly advanced Website Builder CMS, a
+full-scale Online Catalog and Ecommerce Shopping Cart, and a range of high-end
+functional tools to create feature-rich websites.
+
+Desc: PolarisCMS suffers from a XSS issue when input passed to the function
+'WebForm_OnSubmit()' via the URL to blog.aspx is not properly sanitised before
+being returned to the user. This can be exploited to execute arbitrary HTML and
+script code in a user's browser session in context of an affected site.
+
+Tested on: Microsoft IIS/6.0
+           ASP.NET 4.0.30319
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2012-5095
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5095.php
+
+
+
+05.08.2012
+
+---
+
+
+http://HOST/reselleradmin/blog.aspx?%27%22%3E%3Cscript%3Ealert%281%29;%3C/script%3E
+http://HOST/reselleradmin/blog.aspx?%27onmouseover=prompt(101)%3E

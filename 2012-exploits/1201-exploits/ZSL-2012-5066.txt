@@ -1,0 +1,57 @@
+
+Limny 3.0.1 (login.php) Remote URI Based Cross-Site Scripting Vulnerability
+
+
+Vendor: Hamidreza Samak
+Product web page: http://www.limny.org
+Affected version: 3.0.1
+
+Summary: Limny is a free and open-source content management framework
+with a focus on ease to use and develop. It can be used as a stable
+and powerful core for heavy and light web applications by having main
+features of web applications such as user management, multilingual system
+and multiple theme support. Also its rich graphic library helps designers
+to create colorable themes instead of designing multiple themes.
+
+Desc: Limny suffers from a XSS issue in '/admin/login.php' that uses the
+'PHP_SELF' variable. The vulnerability is present because there isn't any
+filtering to the mentioned variable in the affected script. Attackers can
+exploit this weakness to execute arbitrary HTML and script code in a user's
+browser session.
+
+
+=======================================================================
+/admin/login.php:
+-----------------------------------
+
+100: <form name="limny_login" action="<?php print $_SERVER['PHP_SELF']; ?>" method="post">
+
+=======================================================================
+
+
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           MySQL 5.5.16
+           PHP 5.3.8
+
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+
+Advisory ID: ZSL-2012-5066
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5066.php
+
+
+
+04.01.2012
+
+---
+
+
+PoC:
+
+ http://localhost/admin/login.php/"/><script>alert('zsl')</script>

